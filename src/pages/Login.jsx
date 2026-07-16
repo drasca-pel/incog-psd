@@ -1,142 +1,185 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+
+import { auth } from "../firebase/firebase";
+import Input from "../components/Input";
+import Button from "../components/Button";
 
 export default function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  async function handleLogin(e) {
     e.preventDefault();
 
-    // Firebase login will be added later
-    navigate("/dashboard");
-  };
+    setLoading(true);
+    setError("");
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard");
+    } catch (err) {
+      switch (err.code) {
+        case "auth/invalid-credential":
+          setError("Incorrect email or password.");
+          break;
+
+        case "auth/user-not-found":
+          setError("Account not found.");
+          break;
+
+        case "auth/too-many-requests":
+          setError("Too many attempts. Try again later.");
+          break;
+
+        default:
+          setError(err.message);
+      }
+    }
+
+    setLoading(false);
+  }
 
   return (
-    <div style={styles.container}>
+    <div style={styles.page}>
       <div style={styles.card}>
+
         <h1 style={styles.logo}>INCOG</h1>
-        <h2>Welcome Back</h2>
+
         <p style={styles.subtitle}>
-          Sign in to continue building and solving together.
+          Collaborate. Build. Innovate.
         </p>
+
+        {error && (
+          <div style={styles.error}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin}>
-          <input
+
+          <Input
+            label="Email"
             type="email"
-            placeholder="Email Address"
-            style={styles.input}
+            placeholder="Enter your email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e)=>setEmail(e.target.value)}
             required
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            style={styles.input}
+          <div style={{height:15}}/>
+
+          <Input
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e)=>setPassword(e.target.value)}
             required
           />
 
-          <button style={styles.button} type="submit">
-            Login
-          </button>
+          <div style={styles.options}>
+            <label>
+              <input
+                type="checkbox"
+                onChange={()=>setShowPassword(!showPassword)}
+              />
+              Show Password
+            </label>
+
+            <Link to="/forgot-password" style={styles.link}>
+              Forgot?
+            </Link>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "Signing In..." : "Login"}
+          </Button>
+
         </form>
 
-        <button
-          style={styles.guestButton}
-          onClick={() => navigate("/dashboard")}
-        >
-          Continue as Guest
-        </button>
+        <div style={styles.divider}>
+          OR
+        </div>
 
-        <p style={styles.footer}>
-          Don't have an account?{" "}
-          <Link to="/register" style={styles.link}>
-            Create Account
-          </Link>
-        </p>
+        <Button
+          variant="secondary"
+          onClick={()=>navigate("/register")}
+        >
+          Create Account
+        </Button>
+
       </div>
     </div>
   );
 }
 
-const styles = {
-  container: {
-    background: "#0B1120",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: "20px",
-  },
+const styles={
 
-  card: {
-    background: "#1E293B",
-    width: "380px",
-    padding: "35px",
-    borderRadius: "16px",
-    color: "white",
-    textAlign: "center",
-    boxShadow: "0 0 30px rgba(0,0,0,0.3)",
-  },
+page:{
+minHeight:"100vh",
+display:"flex",
+justifyContent:"center",
+alignItems:"center",
+background:"#0B1120",
+padding:"20px"
+},
 
-  logo: {
-    color: "#38BDF8",
-    marginBottom: "10px",
-    fontSize: "42px",
-  },
+card:{
+width:"100%",
+maxWidth:"420px",
+background:"#111827",
+padding:"35px",
+borderRadius:"15px",
+border:"1px solid #1F2937"
+},
 
-  subtitle: {
-    color: "#CBD5E1",
-    marginBottom: "25px",
-  },
+logo:{
+textAlign:"center",
+fontSize:"40px",
+color:"#38BDF8",
+marginBottom:"10px"
+},
 
-  input: {
-    width: "100%",
-    padding: "14px",
-    marginBottom: "15px",
-    borderRadius: "8px",
-    border: "none",
-    outline: "none",
-    boxSizing: "border-box",
-  },
+subtitle:{
+textAlign:"center",
+color:"#94A3B8",
+marginBottom:"25px"
+},
 
-  button: {
-    width: "100%",
-    padding: "14px",
-    background: "#0EA5E9",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontWeight: "bold",
-  },
+options:{
+display:"flex",
+justifyContent:"space-between",
+alignItems:"center",
+margin:"15px 0 20px"
+},
 
-  guestButton: {
-    width: "100%",
-    padding: "14px",
-    marginTop: "12px",
-    background: "transparent",
-    color: "#38BDF8",
-    border: "1px solid #38BDF8",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
+divider:{
+textAlign:"center",
+margin:"20px 0",
+color:"#64748B"
+},
 
-  footer: {
-    marginTop: "20px",
-    color: "#CBD5E1",
-  },
+link:{
+color:"#38BDF8",
+textDecoration:"none"
+},
 
-  link: {
-    color: "#38BDF8",
-    textDecoration: "none",
-    fontWeight: "bold",
-  },
+error:{
+background:"#7F1D1D",
+padding:"10px",
+borderRadius:"8px",
+color:"#FECACA",
+marginBottom:"20px"
+}
+
 };

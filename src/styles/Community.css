@@ -1,0 +1,67 @@
+.communityPage{
+  min-height:100vh;
+  background:#0A0A0A;
+  color:white;
+  padding:20px;
+}
+
+.communityHeader h1{
+  font-size:28px;
+}
+
+.communityHeader p{
+  color:#888;
+}
+
+
+.peopleSection{
+  margin-top:30px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+
+.peopleCard{
+  display:flex;
+  align-items:center;
+  gap:15px;
+  background:#151515;
+  padding:18px;
+  border-radius:15px;
+  border:1px solid #242424;
+}
+
+
+.personAvatar{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  background:white;
+  color:black;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+
+.personInfo h3{
+  margin:0;
+}
+
+
+.personInfo span{
+  color:#888;
+  font-size:13px;
+}
+
+
+.connectButton{
+  margin-top:10px;
+  background:white;
+  color:black;
+  border:none;
+  padding:8px 18px;
+  border-radius:8px;
+}

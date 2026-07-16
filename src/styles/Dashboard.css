@@ -1,0 +1,430 @@
+/* ==========================
+   INCOG PSD Dashboard
+========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#0A0A0A;
+    font-family:Inter,Arial,sans-serif;
+}
+
+.dashboard{
+    min-height:100vh;
+    background:#0A0A0A;
+    color:#FFFFFF;
+}
+
+/* ==========================
+   TOP BAR
+========================== */
+
+.topbar{
+    height:72px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 22px;
+    border-bottom:1px solid #202020;
+    background:#0A0A0A;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+.logoSection{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logoBox{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    background:#FFFFFF;
+    color:#000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:20px;
+    font-weight:700;
+}
+
+.logoSection h2{
+    font-size:20px;
+    font-weight:700;
+}
+
+.logoSection p{
+    font-size:11px;
+    color:#8F8F8F;
+}
+
+.topActions{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.iconButton{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:1px solid #2B2B2B;
+    background:#171717;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.iconButton:hover{
+    background:#242424;
+}
+
+.notificationButton{
+    position:relative;
+}
+
+.notificationBadge{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#FF3B30;
+    position:absolute;
+    right:10px;
+    top:10px;
+}
+
+.profileAvatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#2A2A2A;
+    border:2px solid #404040;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:700;
+}
+
+/* ==========================
+   CONTENT
+========================== */
+
+.dashboardContent{
+    padding:24px;
+}
+
+.welcomeCard{
+    background:#141414;
+    border:1px solid #242424;
+    border-radius:22px;
+    padding:26px;
+}
+
+.welcomeLabel{
+    color:#8E8E8E;
+    font-size:13px;
+}
+
+.welcomeCard h1{
+    margin-top:8px;
+    font-size:34px;
+    font-weight:700;
+}
+
+.welcomeCard p{
+    margin-top:16px;
+    line-height:28px;
+    color:#B5B5B5;
+    font-size:16px;
+}
+
+.primaryButton{
+    margin-top:24px;
+    background:#FFFFFF;
+    color:#000;
+    border:none;
+    padding:14px 24px;
+    border-radius:14px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.primaryButton:hover{
+    opacity:.9;
+}/* ===========================
+   RECENT BROADCASTS
+=========================== */
+
+.broadcastSection{
+    margin-top:30px;
+}
+
+.sectionHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.sectionHeader h2{
+    font-size:20px;
+    font-weight:700;
+}
+
+.seeAllButton{
+    background:none;
+    border:none;
+    color:#8FA8FF;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+}
+
+.broadcastList{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.broadcastCard{
+    background:#151515;
+    border:1px solid #252525;
+    border-radius:18px;
+    padding:18px;
+}
+
+.emptyState{
+    background:#151515;
+    border:1px solid #252525;
+    border-radius:18px;
+    padding:28px;
+    text-align:center;
+    color:#8E8E8E;
+} .broadcastHeader{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:15px;
+}
+
+.broadcastAvatar{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:#2A2A2A;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:700;
+    font-size:18px;
+}
+
+.broadcastInfo h3{
+    font-size:17px;
+    margin-bottom:4px;
+}
+
+.broadcastInfo span{
+    color:#8E8E8E;
+    font-size:13px;
+}
+
+.broadcastDescription{
+    color:#C0C0C0;
+    line-height:24px;
+    margin-bottom:18px;
+}
+
+.broadcastFooter{
+    display:flex;
+    gap:12px;
+}
+
+.acceptButton{
+    flex:1;
+    background:#FFFFFF;
+    color:#000;
+    border:none;
+    padding:12px;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.viewButton{
+    flex:1;
+    background:#202020;
+    color:#FFFFFF;
+    border:1px solid #303030;
+    padding:12px;
+    border-radius:12px;
+    cursor:pointer;
+}/* ================= RECENT CHATS ================= */
+
+.chatSection{
+margin-top:35px;
+}
+
+.chatCard{
+display:flex;
+align-items:center;
+gap:15px;
+background:#151515;
+border:1px solid #252525;
+border-radius:18px;
+padding:18px;
+}
+
+.chatAvatar{
+width:50px;
+height:50px;
+border-radius:50%;
+background:#2C2C2C;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+font-size:18px;
+}
+
+.chatDetails h3{
+font-size:16px;
+margin-bottom:6px;
+}
+
+.chatDetails p{
+font-size:13px;
+color:#8E8E8E;
+}/* ================= ACTIVE PROJECTS ================= */
+
+.projectSection{
+margin-top:35px;
+margin-bottom:90px;
+}
+
+.projectCard{
+background:#151515;
+border:1px solid #252525;
+border-radius:18px;
+padding:22px;
+}
+
+.projectCard h3{
+font-size:18px;
+margin-bottom:10px;
+}
+
+.projectCard p{
+color:#8E8E8E;
+line-height:24px;
+}/* ==========================
+   INCOG PSD BOTTOM NAV
+========================== */
+
+.bottomNav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+
+    height:75px;
+
+    background:#0F0F0F;
+
+    border-top:1px solid #242424;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+
+    z-index:1000;
+
+    padding:0 10px;
+}
+
+
+.navItem{
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:5px;
+
+    color:#8A8A8A;
+
+    text-decoration:none;
+
+    font-size:11px;
+
+    transition:0.2s;
+
+}
+
+
+.navItem.active,
+.navItem:hover{
+
+    color:white;
+
+}
+
+
+.navIcon{
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+}
+
+
+/* Center Broadcast Button */
+
+.navCreate{
+
+    width:55px;
+    height:55px;
+
+    border-radius:50%;
+
+    background:#FFFFFF;
+
+    color:#000000;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    text-decoration:none;
+
+    font-size:32px;
+
+    font-weight:300;
+
+    margin-top:-35px;
+
+    border:5px solid #0F0F0F;
+
+}
+
+
+.navCreate:hover{
+
+    transform:scale(1.05);
+
+}
