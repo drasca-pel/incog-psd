@@ -1,9 +1,8 @@
-export async function uploadFiles(file) {
-  if (!file) return null;
-
+export async function uploadToCloudinary(file) {
   const formData = new FormData();
+
   formData.append("file", file);
-  formData.append("upload_preset", "incog_uploads");
+  formData.append("upload_preset", "Incog_uploads");
 
   const response = await fetch(
     "https://api.cloudinary.com/v1_1/f3zjhg4c/auto/upload",
@@ -19,9 +18,11 @@ export async function uploadFiles(file) {
     throw new Error(data.error?.message || "Upload failed");
   }
 
-  return {
-    url: data.secure_url,
-    type: file.type,
-    name: file.name,
-  };
+return {
+  url: data.secure_url,
+  publicId: data.public_id,
+  resourceType: data.resource_type,
+  type: file.type,
+  name: file.name,
+};
 }

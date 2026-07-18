@@ -39,7 +39,7 @@ export default function BottomNav() {
       </NavLink>
 
 
-      <NavLink to="/broadcast" className="navCreate">
+      <NavLink to="/my-broadcasts" className="navCreate">
 
         <span>
           +

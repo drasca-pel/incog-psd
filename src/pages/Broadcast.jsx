@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase/firebase";
+import { useNavigate } from "react-router-dom";
+import { uploadToCloudinary } from "../services/cloudinary";
 
 import {
   collection,
@@ -17,6 +19,8 @@ import MediaUpload from "../components/MediaUpload";
 import "../styles/Broadcast.css";
 
 export default function Broadcast() {
+  
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [skill, setSkill] = useState("");
@@ -50,6 +54,8 @@ export default function Broadcast() {
 
     loadUserSkills();
   }, []);
+    
+   
 
   async function createBroadcast(e) {
     e.preventDefault();
@@ -70,7 +76,7 @@ export default function Broadcast() {
 
       const existing = await getDocs(q);
 
-      if (existing.size >= 2) {
+      if (existing.size >= 6) {
         alert(
           "You already have 2 active broadcasts. Complete one before creating another."
         );
@@ -78,36 +84,30 @@ export default function Broadcast() {
         setLoading(false);
         return;
       }
+         
+     
+   
+  await addDoc(collection(db, "broadcasts"), {
+    creatorId: auth.currentUser.uid,
+    creatorName:
+      auth.currentUser.displayName || "INCOG User",
+    title,
+    description,
+    targetSkills: [skill],
+    media,
+    status: "active",
+    createdAt: serverTimestamp(),
+    lastReminderAt: serverTimestamp(),
+    reminderCount: 0,
+  }); 
 
-      await addDoc(collection(db, "broadcasts"), {
-        creatorId: auth.currentUser.uid,
-
-        creatorName:
-          auth.currentUser.displayName || "INCOG User",
-
-        title,
-
-        description,
-
-        targetSkills: [skill],
-
-        media,
-
-        status: "active",
-
-        createdAt: serverTimestamp(),
-
-        lastReminderAt: serverTimestamp(),
-
-        reminderCount: 0,
-      });
-
-      alert("Broadcast created successfully.");
+  alert("Broadcast created successfully.");
 
       setTitle("");
       setDescription("");
       setSkill("");
       setMedia(null);
+      navigate("/my-broadcasts");
     } catch (error) {
       alert(error.message);
     }
@@ -182,12 +182,21 @@ export default function Broadcast() {
               onUpload={(file) => setMedia(file)}
             />
 
-            <button
-              className="broadcastButton"
-              disabled={loading}
-            >
-              {loading ? "Publishing..." : "Publish Broadcast"}
-            </button>
+           <button
+  className="broadcastButton"
+  disabled={loading}
+  type="submit"
+>
+  {loading ? "Publishing..." : "Publish Broadcast"}
+</button>
+
+<button
+  className="createVocalsButton"
+  disabled={loading}
+  type="submit"
+>
+  {loading ? "Creating..." : "Create New Vocals"}
+</button>
           </form>
         </div>
       </div>

@@ -1,98 +1,198 @@
 import React, { useState } from "react";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL
-} from "firebase/storage";
 
-import storage from "../firebase/storage";
+export default function MediaUpload({
 
+  onUpload,
 
-export default function MediaUpload({ onUpload }) {
+  existingMedia = null,
 
-  const [uploading, setUploading] = useState(false);
-  const [fileName, setFileName] = useState("");
+}) {
 
+  const [preview, setPreview] =
+    useState(existingMedia);
 
+  const [uploading, setUploading] =
+    useState(false);
 
-  async function handleUpload(e) {
+  function handleChange(e) {
 
     const file = e.target.files[0];
 
     if (!file) return;
 
+    // 25MB limit
+    if (file.size > 25 * 1024 * 1024) {
 
-    setUploading(true);
-    setFileName(file.name);
-
-
-    try {
-
-      const fileRef = ref(
-        storage,
-        `uploads/${Date.now()}-${file.name}`
+      alert(
+        "Maximum upload size is 25MB."
       );
 
-
-      await uploadBytes(
-        fileRef,
-        file
-      );
-
-
-      const url = await getDownloadURL(
-        fileRef
-      );
-
-
-      onUpload({
-        url,
-        type: file.type,
-        name: file.name
-      });
-
-
-    } catch(error) {
-
-      alert(error.message);
+      return;
 
     }
 
+    setUploading(true);
+
+    const localPreview = {
+
+      url: URL.createObjectURL(file),
+
+      type: file.type,
+
+      name: file.name,
+
+      file,
+
+    };
+
+    setPreview(localPreview);
+
+    onUpload(localPreview);
 
     setUploading(false);
 
   }
 
+  function removeMedia() {
 
+    setPreview(null);
+
+    onUpload({
+
+      removed: true,
+
+    });
+
+  }
 
   return (
 
-    <div>
+    <div className="mediaUpload">
 
-      <input
-        type="file"
-        accept="image/*,video/*,.pdf,.doc,.docx"
-        onChange={handleUpload}
-      />
+      {preview && (
 
+        <div className="mediaPreview">
 
-      {
-        uploading && (
-          <p>
-            Uploading...
-          </p>
-        )
-      }
+          {preview.type?.startsWith("image") && (
 
+            <img
 
-      {
-        fileName && !uploading && (
-          <p>
-            Uploaded: {fileName}
-          </p>
-        )
-      }
+              src={preview.url}
 
+              alt="Preview"
+
+              className="broadcastImage"
+
+            />
+
+          )}
+
+          {preview.type?.startsWith("video") && (
+
+            <video
+
+              src={preview.url}
+
+              controls
+
+              className="broadcastVideo"
+
+            />
+
+          )}
+
+          {!preview.type?.startsWith("image") &&
+            !preview.type?.startsWith("video") && (
+
+              <a
+
+                href={preview.url}
+
+                target="_blank"
+
+                rel="noreferrer"
+
+              >
+
+                📎 {preview.name}
+
+              </a>
+
+          )}
+
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              gap: "10px",
+            }}
+          >
+
+            <label className="broadcastButton">
+
+              Change
+
+              <input
+
+                type="file"
+
+                accept="image/*,video/*,.pdf,.doc,.docx"
+
+                hidden
+
+                onChange={handleChange}
+
+              />
+
+            </label>
+
+            <button
+
+              type="button"
+
+              className="createVocalsButton"
+
+              onClick={removeMedia}
+
+            >
+
+              Remove
+
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
+
+      {!preview && (
+
+        <label className="broadcastButton">
+
+          Upload Attachment
+
+          <input
+
+            type="file"
+
+            accept="image/*,video/*,.pdf,.doc,.docx"
+
+            hidden
+
+            onChange={handleChange}
+
+          />
+
+        </label>
+
+      )}
+
+      {uploading && (
+
+        <p>Uploading...</p>
+
+      )}
 
     </div>
 

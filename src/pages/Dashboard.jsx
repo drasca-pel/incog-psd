@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import { collection, getDocs, where, query, orderBy } from "firebase/firestore";
+import { auth, db } from "../firebase/firebase";
 import "../styles/Dashboard.css";
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -11,10 +12,12 @@ export default function Dashboard() {
 useEffect(() => {
   const loadBroadcasts = async () => {
     try {
+      
       const q = query(
-        collection(db, "broadcasts"),
-        orderBy("createdAt", "desc")
-      );
+  collection(db, "broadcasts"),
+  where("creatorId", "==", auth.currentUser.uid),
+  orderBy("createdAt", "desc")
+);
 
       const snapshot = await getDocs(q);
 
@@ -107,11 +110,14 @@ useEffect(() => {
 
   <div className="sectionHeader">
 
-    <h2>Recent Broadcasts</h2>
+    <h2>My Recent Broadcasts</h2>
 
-    <button className="seeAllButton">
-      See All
-    </button>
+    <button
+  className="viewButton"
+  onClick={() => navigate("/my-broadcasts")}
+>
+  See All
+</button>
 
   </div>
 
@@ -125,7 +131,7 @@ useEffect(() => {
 
     ) : (
 
-      broadcasts.map((broadcast) => (
+      broadcasts.slice(0,2).map((broadcast) => (
 
         <div
           className="broadcastCard"
@@ -158,17 +164,7 @@ useEffect(() => {
             {broadcast.description}
           </p>
 
-          <div className="broadcastFooter">
-
-            <button className="acceptButton">
-              Accept
-            </button>
-
-            <button className="viewButton">
-              Details
-            </button>
-
-          </div>
+          
 
         </div>
 

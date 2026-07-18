@@ -15,8 +15,9 @@ import Settings from "./pages/Settings";
 import BRDAlert from "./pages/BRDAlert";
 import Chat from "./pages/Chat";
 import Community from "./pages/Community";
-
+import BroadcastDetails from "./pages/BroadcastDetails";
 import BottomNav from "./components/BottomNav";
+import MyBroadcasts from "./pages/MyBroadcasts";
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
@@ -43,12 +44,20 @@ function PrivateRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <>
-      {children}
-      <BottomNav />
-    </>
-  );
+ return (
+  <>
+    {children}
+
+    {[
+      "/dashboard",
+      "/feed",
+      "/my-broadcasts",
+      "/alerts",
+      "/chat",
+      "/broadcast",
+    ].includes(location.pathname) && <BottomNav />}
+  </>
+);
 }
 
 export default function App() {
@@ -60,7 +69,12 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/community" element={<Community />} />
-
+        <Route path="/broadcast-details/:id" element={<BroadcastDetails />} />
+        <Route path="/my-broadcasts" element={<PrivateRoute><MyBroadcasts /></PrivateRoute>} />
+        <Route
+  path="/edit-broadcast/:id"
+  element={<Broadcast />}
+/>
         {/* Setup */}
         <Route
           path="/skillselection"
