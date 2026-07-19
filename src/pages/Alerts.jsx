@@ -7,6 +7,7 @@ import {
   onSnapshot,
   deleteDoc,
   doc,
+  getDoc,
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase/firebase";
@@ -15,20 +16,44 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Alerts.css";
 
 export default function Alerts() {
+  const navigate = useNavigate();
+
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+
+  const [userSkills, setUserSkills] = useState([]);
+  const [selectedSkill, setSelectedSkill] = useState("All My Skills");
 
   useEffect(() => {
     if (!auth.currentUser) return;
 
+    loadUserSkills();
+    const unsubscribe = listenForAlerts();
+
+    return () => unsubscribe && unsubscribe();
+  }, []);
+
+  async function loadUserSkills() {
+    try {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        setUserSkills(snap.data().skills || []);
+      }
+    } catch (error) {
+      console.error("Error loading skills:", error);
+    }
+  }
+
+  function listenForAlerts() {
     const q = query(
       collection(db, "alerts"),
       where("receiverId", "==", auth.currentUser.uid),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(
+    return onSnapshot(
       q,
       (snapshot) => {
         const list = snapshot.docs.map((item) => ({
@@ -40,13 +65,11 @@ export default function Alerts() {
         setLoading(false);
       },
       (error) => {
-        console.error("Alerts Error:", error);
+        console.error("Alerts listener error:", error);
         setLoading(false);
       }
     );
-
-    return () => unsubscribe();
-  }, []);
+  }
 
   async function rejectAlert(alertId) {
     const confirmReject = window.confirm(
@@ -63,15 +86,18 @@ export default function Alerts() {
   }
 
   function acceptAlert(alert) {
-    const confirmAccept = window.confirm(
-      "Do you want to accept this project?"
-    );
+    const confirmAccept = window.confirm("Do you want to accept this project?");
 
     if (!confirmAccept) return;
 
-    // Chat creation will be connected here
-    console.log("Accepted alert:", alert);
+    // Chat connection comes next
+    console.log("Accepted:", alert);
   }
+
+  const filteredAlerts =
+    selectedSkill === "All My Skills"
+      ? alerts
+      : alerts.filter((item) => item.group === selectedSkill);
 
   return (
     <div className="alertsPage">
@@ -81,18 +107,32 @@ export default function Alerts() {
 
       <h1>Alerts</h1>
 
+      <select
+        className="skillFilter"
+        value={selectedSkill}
+        onChange={(e) => setSelectedSkill(e.target.value)}
+      >
+        <option>All My Skills</option>
+        {userSkills.map((skill) => (
+          <option key={skill} value={skill}>
+            {skill}
+          </option>
+        ))}
+      </select>
+
       {loading ? (
         <p>Loading...</p>
-      ) : alerts.length === 0 ? (
+      ) : filteredAlerts.length === 0 ? (
         <p>No alerts available.</p>
       ) : (
-        alerts.map((alert) => (
+        filteredAlerts.map((alert) => (
           <div key={alert.id} className="alertCard">
             <h3>{alert.title}</h3>
 
-            <p>By: {alert.creatorName}</p>
-
-            <p>Group: {alert.group}</p>
+            <div className="alertMeta">
+              <span>{alert.creatorName}</span>
+              <span>{alert.group}</span>
+            </div>
 
             <div className="alertButtons">
               <button
