@@ -69,7 +69,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/broadcast-details/:id" element={<BroadcastDetails />} />
+        <Route path="/broadcast/:id" element={<BroadcastDetails />} />
         <Route path="/my-broadcasts" element={<PrivateRoute><MyBroadcasts /></PrivateRoute>} />
         <Route
   path="/edit-broadcast/:id"

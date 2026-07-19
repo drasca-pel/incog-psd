@@ -1,0 +1,160 @@
+.detailsPage {
+  min-height: 100vh;
+  background: #050505;
+  color: #ffffff;
+  padding: 25px 18px;
+  font-family: Arial, sans-serif;
+}
+
+.backButton {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #333;
+  background: #111;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.backButton:hover {
+  background: #1c1c1c;
+}
+
+.detailsPage h1 {
+  font-size: 28px;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.detailsMeta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.detailsMeta span {
+  background: #111827;
+  border: 1px solid #243244;
+  color: #9ecbff;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.detailsDescription {
+  background: #0d0d0d;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 18px;
+  line-height: 1.6;
+  color: #d5d5d5;
+  margin-bottom: 25px;
+}
+
+.detailsButtons {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.acceptBtn,
+.rejectBtn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.acceptBtn {
+  background: #2563eb;
+  color: white;
+}
+
+.acceptBtn:hover {
+  background: #1d4ed8;
+}
+
+.rejectBtn {
+  background: #1f2937;
+  color: white;
+  border: 1px solid #374151;
+}
+
+.rejectBtn:hover {
+  background: #374151;
+}
+
+
+/* MEDIA SECTION */
+
+.detailsMedia {
+  width: 100%;
+  max-height: 450px;
+  object-fit: contain;
+  border-radius: 16px;
+  margin-top: 20px;
+  background: #000;
+  border: 1px solid #222;
+}
+
+
+.attachmentCard {
+  background: #0d0d0d;
+  border: 1px solid #222;
+  padding: 18px;
+  border-radius: 14px;
+  margin-top: 20px;
+}
+
+
+.attachmentCard p {
+  color: #ccc;
+  margin-bottom: 12px;
+}
+
+
+.attachmentCard a {
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+
+.attachmentCard a:hover {
+  text-decoration: underline;
+}
+
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 600px) {
+
+  .detailsPage {
+    padding: 20px 14px;
+  }
+
+
+  .detailsPage h1 {
+    font-size: 22px;
+  }
+
+
+  .detailsButtons {
+    flex-direction: column;
+  }
+
+
+  .acceptBtn,
+  .rejectBtn {
+    width: 100%;
+  }
+
+}

@@ -1,52 +1,182 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import {
+  doc,
+  getDoc,
+  addDoc,
+  updateDoc,
+  collection,
+  serverTimestamp,
+} from "firebase/firestore";
+
+import { auth, db } from "../firebase/firebase";
+import { useNavigate, useParams } from "react-router-dom";
+
 import "../styles/BroadcastDetails.css";
 
-
 export default function BroadcastDetails() {
-
+  const navigate = useNavigate();
   const { id } = useParams();
-  return (
-    <div className="broadcastDetailsPage">
 
-      <div className="broadcastDetailsCard">
+  const [broadcast, setBroadcast] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-        <h1>ESP32 Smart Irrigation System</h1>
+  useEffect(() => {
+    loadBroadcast();
+  }, []);
 
-        <p>
-          <strong>Created by:</strong> {broadcast.creatorName}
-        </p>
+  async function loadBroadcast() {
+    try {
+      const snap = await getDoc(
+        doc(db, "broadcasts", id)
+      );
 
-        <p>
-          <strong>Broadcast Group:</strong> Embedded Systems
-        </p>
+      console.log("Broadcast ID:", id);
+      console.log("Exists:", snap.exists());
 
-        <p>
-          <strong>Status:</strong> Active
-        </p>
+      if (snap.exists()) {
+        setBroadcast({
+          id: snap.id,
+          ...snap.data(),
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
 
-        <hr />
+    setLoading(false);
+  }
 
-        <h3>Problem Description</h3>
+  async function acceptProject() {
+    const confirmAccept = window.confirm(
+      "Do you want to accept this project?"
+    );
 
-        <p>
-          This is where the full broadcast description will appear.
-          Later, it will be loaded directly from Firebase.
-        </p>
+    if (!confirmAccept) return;
 
-        <div className="broadcastButtons">
+    try {
+      const chatRef = await addDoc(
+        collection(db, "chats"),
+        {
+          broadcastid: broadcast.id,
+          creatorid: broadcast.creatorid,
+          helperid: auth.currentUser.uid,
+          creatorname: broadcast.creatorname,
+          helpername:
+            auth.currentUser.displayName ||
+            "INCOG User",
 
-          <button className="acceptButton">
-            Accept Problem
-          </button>
+          title: broadcast.title,
 
-          <button className="reportButton">
-            Report
-          </button>
+          status: "active",
 
-        </div>
+          createdat: serverTimestamp(),
+        }
+      );
+
+      await updateDoc(
+        doc(db, "broadcasts", broadcast.id),
+        {
+          status: "in_progress",
+          accepted: true,
+          acceptedby: auth.currentUser.uid,
+        }
+      );
+
+      navigate(`/chat/${chatRef.id}`);
+
+    } catch (error) {
+      console.error(error);
+      alert("Unable to accept project.");
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="detailsPage">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!broadcast) {
+    return (
+      <div className="detailsPage">
+        Broadcast not found.
+      </div>
+    );
+  } return (
+    <div className="detailsPage">
+
+      <button
+        className="backButton"
+        onClick={() => navigate(-1)}
+      >
+        ←
+      </button>
+
+      <h1>{broadcast.title}</h1>
+
+      <div className="detailsMeta">
+        <span>{broadcast.creatorname}</span>
+
+        <span>
+          {broadcast.targetskills?.[0]}
+        </span>
+      </div>
+
+      <p className="detailsDescription">
+        {broadcast.description}
+      </p>
+
+      {broadcast.media?.url && (
+        <>
+          {broadcast.media.type?.startsWith("image") ? (
+            <img
+              src={broadcast.media.url}
+              alt="Broadcast"
+              className="detailsMedia"
+            />
+          ) : broadcast.media.type?.startsWith("video") ? (
+            <video
+              controls
+              className="detailsMedia"
+            >
+              <source
+                src={broadcast.media.url}
+              />
+              Your browser does not support video.
+            </video>
+          ) : (
+            <div className="attachmentCard">
+              <p>Attachment Available</p>
+
+              <a
+                href={broadcast.media.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open Attachment
+              </a>
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="detailsButtons">
+
+        <button
+          className="acceptBtn"
+          onClick={acceptProject}
+        >
+          Accept
+        </button>
+
+        <button
+          className="rejectBtn"
+          onClick={() => navigate(-1)}
+        >
+          Back
+        </button>
 
       </div>
 
