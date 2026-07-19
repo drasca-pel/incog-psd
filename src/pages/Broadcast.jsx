@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   doc,
   getDoc,
+  getFirestore,
 } from "firebase/firestore";
 
 import MediaUpload from "../components/MediaUpload";
@@ -86,21 +87,75 @@ export default function Broadcast() {
       }
          
      
-   
-  await addDoc(collection(db, "broadcasts"), {
+  const broadcastRef = await addDoc(
+  collection(db, "broadcasts"),
+  {
     creatorId: auth.currentUser.uid,
     creatorName:
       auth.currentUser.displayName || "INCOG User",
+
     title,
     description,
-    targetSkills: [skill],
-    media,
-    status: "active",
-    createdAt: serverTimestamp(),
-    lastReminderAt: serverTimestamp(),
-    reminderCount: 0,
-  }); 
 
+    targetSkills: [skill],
+
+    media: media,
+
+    status: "active",
+
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+
+    accepted: false,
+    acceptedBy: null,
+
+    expiresIn: 7,
+
+    expiresAt:
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+
+    editExpiresAt:
+      Date.now() + 60 * 60 * 1000,
+
+    lastReminderAt: serverTimestamp(),
+
+    reminderCount: 0,
+  }
+);
+
+const usersQuery = query(
+  collection(db, "users"),
+  where("skills", "array-contains", skill)
+);
+
+const usersSnapshot = await getDocs(usersQuery);
+
+for (const userDoc of usersSnapshot.docs) {
+
+  if (userDoc.id === auth.currentUser.uid) continue;
+
+  await addDoc(collection(db, "alerts"), {
+
+    receiverId: userDoc.id,
+
+    creatorId: auth.currentUser.uid,
+
+    creatorName:
+      auth.currentUser.displayName || "INCOG User",
+
+    broadcastId: broadcastRef.id,
+
+    title: title,
+
+    group: skill,
+
+    status: "unread",
+
+    createdAt: serverTimestamp(),
+
+  });
+
+}
   alert("Broadcast created successfully.");
 
       setTitle("");

@@ -126,3 +126,91 @@
   font-weight: bold;
   margin-top: 8px;
 }
+.mediaUploadContainer{
+    margin-top:12px;
+}
+
+.mediaPreviewCard{
+    background:#1b1b1b;
+    border:1px solid #303030;
+    border-radius:14px;
+    padding:12px;
+}
+
+.broadcastImage,
+.broadcastVideo{
+    width:100%;
+    max-height:280px;
+    object-fit:cover;
+    border-radius:12px;
+}
+
+.filePreview{
+    background:#252525;
+    color:white;
+    padding:15px;
+    border-radius:10px;
+}
+
+.mediaActions{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
+
+.uploadMediaBtn,
+.changeMediaBtn{
+    display:inline-flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:10px 18px;
+
+    background:#2563eb;
+    color:white;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    transition:.25s;
+}
+
+.uploadMediaBtn:hover,
+.changeMediaBtn:hover{
+    background:#1d4ed8;
+}
+
+.removeMediaBtn{
+    padding:10px 18px;
+
+    background:transparent;
+
+    border:1px solid #ff4d4f;
+
+    color:#ff4d4f;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    transition:.25s;
+}
+
+.removeMediaBtn:hover{
+    background:#ff4d4f;
+    color:white;
+}
+
+.uploadingText{
+    margin-top:10px;
+    color:#bbbbbb;
+}

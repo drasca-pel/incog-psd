@@ -12,12 +12,13 @@ import Feed from "./pages/Feed";
 import Broadcast from "./pages/Broadcast";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
-import BRDAlert from "./pages/BRDAlert";
+import Alerts from "./pages/Alerts";
 import Chat from "./pages/Chat";
 import Community from "./pages/Community";
 import BroadcastDetails from "./pages/BroadcastDetails";
 import BottomNav from "./components/BottomNav";
 import MyBroadcasts from "./pages/MyBroadcasts";
+import EditBroadcast from "./pages/EditBroadcast";
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
@@ -53,7 +54,6 @@ function PrivateRoute({ children }) {
       "/feed",
       "/my-broadcasts",
       "/alerts",
-      "/chat",
       "/broadcast",
     ].includes(location.pathname) && <BottomNav />}
   </>
@@ -73,7 +73,7 @@ export default function App() {
         <Route path="/my-broadcasts" element={<PrivateRoute><MyBroadcasts /></PrivateRoute>} />
         <Route
   path="/edit-broadcast/:id"
-  element={<Broadcast />}
+  element={<EditBroadcast />}
 />
         {/* Setup */}
         <Route
@@ -114,7 +114,7 @@ export default function App() {
           path="/alerts"
           element={
             <PrivateRoute>
-              <BRDAlert />
+              <Alerts />
             </PrivateRoute>
           }
         />

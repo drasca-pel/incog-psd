@@ -85,10 +85,9 @@ useEffect(() => {
           <span className="welcomeLabel">
             Welcome Back
           </span>
-
-          <h1>
-            Adeleye
-          </h1>
+<h1>
+  {auth.currentUser?.displayName || "INCOG User"}
+</h1>
 
           <p>
             Solve engineering problems, collaborate with professionals,

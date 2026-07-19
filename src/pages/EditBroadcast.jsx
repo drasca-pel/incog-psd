@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
+
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+
 import { auth, db } from "../firebase/firebase";
-import { useNavigate, useParams } from "react-router-dom";
-import { uploadToCloudinary } from "../services/cloudinary";
 
 import {
   doc,
@@ -12,234 +16,296 @@ import {
 
 import MediaUpload from "../components/MediaUpload";
 
+import { uploadToCloudinary } from "../services/cloudinary";
+
 import "../styles/Broadcast.css";
 
 export default function EditBroadcast() {
-
   const navigate = useNavigate();
+
   const { id } = useParams();
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+
+  const [description, setDescription] =
+    useState("");
+
   const [skill, setSkill] = useState("");
 
   const [media, setMedia] = useState(null);
-  const [oldMedia, setOldMedia] = useState(null);
 
-  const [loading, setLoading] = useState(false);
-  const [userSkills, setUserSkills] = useState([]);
+  const [oldMedia, setOldMedia] =
+    useState(null);
 
-  useEffect(() => {
-    loadUserSkills();
-    loadBroadcast();
-  }, []);
+  const [loading, setLoading] =
+    useState(false);
 
-  async function loadUserSkills() {
-    try {
-      const userRef = doc(
-        db,
-        "users",
-        auth.currentUser.uid
-      );
+  const [expired, setExpired] =
+    useState(false);
 
-      const userSnap = await getDoc(userRef);
+  const [userSkills, setUserSkills] =
+    useState([]);
+    useEffect(() => {
+    async function loadData() {
+      if (!auth.currentUser) return;
 
-      if (userSnap.exists()) {
-        setUserSkills(
-          userSnap.data().skills || []
+      try {
+        // Load user's groups
+        const userRef = doc(
+          db,
+          "users",
+          auth.currentUser.uid
         );
-      }
 
-    } catch (error) {
-      console.error(error);
-    }
-  }
+        const userSnap = await getDoc(userRef);
 
-  async function loadBroadcast() {
-
-    try {
-
-      const broadcastRef = doc(
-        db,
-        "broadcasts",
-        id
-      );
-
-      const broadcastSnap =
-        await getDoc(broadcastRef);
-
-      if (!broadcastSnap.exists()) {
-        alert("Broadcast not found.");
-        navigate("/my-broadcasts");
-        return;
-      }
-
-      const data =
-        broadcastSnap.data();
-
-      setTitle(data.title || "");
-      setDescription(data.description || "");
-      setSkill(data.targetSkills?.[0] || "");
-
-      setOldMedia(data.media || null);
-      setMedia(data.media || null);
-
-    } catch (error) {
-      console.error(error);
-    }
-
-  }
-
-  async function saveChanges(e) {
-
-    e.preventDefault();
-
-    if (!title || !description || !skill) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-
-      let mediaData = oldMedia;
-
-      if (media?.file) {
-        mediaData =
-          await uploadToCloudinary(
-            media.file
+        if (userSnap.exists()) {
+          setUserSkills(
+            userSnap.data().skills || []
           );
-      }
-
-      if (media?.removed) {
-        mediaData = null;
-      }
-
-      await updateDoc(
-        doc(db, "broadcasts", id),
-        {
-          title,
-          description,
-          targetSkills: [skill],
-          media: mediaData,
-          updatedAt: serverTimestamp(),
         }
-      );
 
-      alert(
-        "Broadcast updated successfully."
-      );
+        // Load broadcast
+        const broadcastRef = doc(
+          db,
+          "broadcasts",
+          id
+        );
 
-      navigate("/my-broadcasts");
+        const broadcastSnap =
+          await getDoc(broadcastRef);
 
-    } catch (error) {
-      alert(error.message);
+        if (!broadcastSnap.exists()) {
+          alert("Broadcast not found.");
+
+          navigate("/my-broadcasts");
+
+          return;
+        }
+
+        const data = broadcastSnap.data();
+
+        // Only owner can edit
+        if (
+          data.creatorId !==
+          auth.currentUser.uid
+        ) {
+          alert(
+            "You cannot edit this broadcast."
+          );
+
+          navigate("/my-broadcasts");
+
+          return;
+        }
+
+        // Check 1-hour edit limit
+        if (
+          data.editExpiresAt &&
+          Date.now() > data.editExpiresAt
+        ) {
+          setExpired(true);
+        }
+
+        setTitle(data.title || "");
+
+        setDescription(
+          data.description || ""
+        );
+
+        setSkill(
+          data.targetSkills?.[0] || ""
+        );
+
+        setMedia(data.media || null);
+
+        setOldMedia(data.media || null);
+
+      } catch (error) {
+        console.error(error);
+      }
     }
 
-    setLoading(false);
+    loadData();
+  }, [id, navigate]);
+  async function saveChanges(e) {
+  e.preventDefault();
+
+  if (!title || !description || !skill) {
+    alert("Please fill in all required fields.");
+    return;
   }
 
-  return (
-    <div className="broadcastPage">
-      <div className="broadcastContainer">
-        <div className="broadcastCard">
+  if (expired) {
+    alert(
+      "This broadcast can no longer be edited."
+    );
+    return;
+  }
 
-          <h1>Edit Broadcast</h1>
+  setLoading(true);
 
-          <p className="broadcastSubtitle">
-            Update your engineering problem.
-          </p>
-          <form onSubmit={saveChanges}>
+  try {
+    let mediaData = oldMedia;
 
-  <label className="inputLabel">
-    Broadcast Title
-  </label>
+    // Upload new media if selected
+    if (media?.file) {
+      mediaData = await uploadToCloudinary(
+        media.file
+      );
 
-  <input
-    className="broadcastInput"
-    placeholder="Example: ESP32 Smart Irrigation System"
-    value={title}
-    onChange={(e) => setTitle(e.target.value)}
-  />
+      // Delete old Cloudinary media later
+      if (oldMedia?.publicId) {
+        console.log(
+          "Delete old Cloudinary file:",
+          oldMedia.publicId
+        );
 
-  <label className="inputLabel">
-    Problem Description
-  </label>
+        // We'll connect the Firebase Function here later
+      }
+    }
 
-  <textarea
-    className="broadcastTextarea"
-    placeholder="Explain the problem in detail..."
-    value={description}
-    onChange={(e) => setDescription(e.target.value)}
-  />
+    // User removed media completely
+    if (media === null && oldMedia) {
+      console.log(
+        "Delete Cloudinary file:",
+        oldMedia.publicId
+      );
 
-  <label className="inputLabel">
-    Broadcast Group
-  </label>
+      mediaData = null;
 
-  <select
-    className="broadcastInput"
-    value={skill}
-    onChange={(e) => setSkill(e.target.value)}
-  >
+      // We'll connect the Firebase Function here later
+    }
 
-    <option value="">
-      Select Broadcast Group
-    </option>
+    await updateDoc(
+      doc(db, "broadcasts", id),
+      {
+        title,
 
-    {userSkills.length > 0 ? (
+        description,
 
-      userSkills.map((item) => (
+        targetSkills: [skill],
 
-        <option
-          key={item}
-          value={item}
-        >
-          {item}
-        </option>
+        media: mediaData,
 
-      ))
+        updatedAt: serverTimestamp(),
+      }
+    );
 
-    ) : (
+    alert("Broadcast updated successfully.");
 
-      <option disabled>
-        No groups available
-      </option>
+    navigate("/my-broadcasts");
 
-    )}
+  } catch (error) {
 
-  </select>
+    console.error(error);
 
-  <label className="inputLabel">
-    Attachment
-  </label>
+    alert(error.message);
 
-  <MediaUpload
-    existingMedia={oldMedia}
-    onUpload={setMedia}
-  />
+  }
 
-  <button
-    className="broadcastButton"
-    disabled={loading}
-    type="submit"
-  >
-    {loading ? "Saving..." : "Save Changes"}
-  </button>
+  setLoading(false);
+}
+    return (
+  <div className="broadcastPage">
+    <div className="broadcastContainer">
+      <div className="broadcastCard">
 
-  <button
-    type="button"
-    className="createVocalsButton"
-    onClick={() => navigate("/my-broadcasts")}
-  >
-    Cancel
-  </button>
+        <h1>Edit Broadcast</h1>
 
-</form>
+        <p className="broadcastSubtitle">
+          Update your engineering problem before the edit time expires.
+        </p>
 
-        </div>
+        <form onSubmit={saveChanges}>
+
+          <label className="inputLabel">
+            Broadcast Title
+          </label>
+
+          <input
+            className="broadcastInput"
+            placeholder="Example: ESP32 Smart Irrigation System"
+            value={title}
+            onChange={(e) =>
+              setTitle(e.target.value)
+            }
+          />
+
+          <label className="inputLabel">
+            Problem Description
+          </label>
+
+          <textarea
+            className="broadcastTextarea"
+            placeholder="Explain the problem in detail..."
+            value={description}
+            onChange={(e) =>
+              setDescription(e.target.value)
+            }
+          />
+
+          <label className="inputLabel">
+            Broadcast Group
+          </label>
+
+          <select
+            className="broadcastInput"
+            value={skill}
+            onChange={(e) =>
+              setSkill(e.target.value)
+            }
+          >
+            <option value="">
+              Select Broadcast Group
+            </option>
+
+            {userSkills.map((item) => (
+              <option
+                key={item}
+                value={item}
+              >
+                {item}
+              </option>
+            ))}
+          </select>
+
+          <label className="inputLabel">
+            Attachment (Optional)
+          </label><MediaUpload
+            media={media}
+            onUpload={(file) => setMedia(file)}
+            onRemove={() => setMedia(null)}
+          />
+
+          {expired ? (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                background: "#2b0000",
+                color: "#ffb3b3",
+                borderRadius: "8px",
+                textAlign: "center",
+                fontWeight: "bold",
+              }}
+            >
+              Editing period has expired.
+            </div>
+          ) : (
+            <button
+              className="broadcastButton"
+              disabled={loading}
+              type="submit"
+            >
+              {loading
+                ? "Saving..."
+                : "Save Changes"}
+            </button>
+          )}</form>
+
       </div>
     </div>
-  );
+  </div>
+);
 }

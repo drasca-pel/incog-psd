@@ -16,7 +16,7 @@ export default function BroadcastDetails() {
         <h1>ESP32 Smart Irrigation System</h1>
 
         <p>
-          <strong>Created by:</strong> Adeleye
+          <strong>Created by:</strong> {broadcast.creatorName}
         </p>
 
         <p>

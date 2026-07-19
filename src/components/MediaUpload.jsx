@@ -1,48 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function MediaUpload({
-
   onUpload,
-
   existingMedia = null,
-
 }) {
+  const [preview, setPreview] = useState(existingMedia);
 
-  const [preview, setPreview] =
-    useState(existingMedia);
+  const [uploading, setUploading] = useState(false);
 
-  const [uploading, setUploading] =
-    useState(false);
+  useEffect(() => {
+    setPreview(existingMedia);
+  }, [existingMedia]);
 
   function handleChange(e) {
-
     const file = e.target.files[0];
 
     if (!file) return;
 
-    // 25MB limit
     if (file.size > 25 * 1024 * 1024) {
-
-      alert(
-        "Maximum upload size is 25MB."
-      );
-
+      alert("Maximum upload size is 25MB.");
       return;
-
     }
 
     setUploading(true);
 
     const localPreview = {
-
       url: URL.createObjectURL(file),
-
       type: file.type,
-
       name: file.name,
-
       file,
-
     };
 
     setPreview(localPreview);
@@ -50,138 +36,78 @@ export default function MediaUpload({
     onUpload(localPreview);
 
     setUploading(false);
-
   }
 
   function removeMedia() {
-
     setPreview(null);
 
-    onUpload({
-
-      removed: true,
-
-    });
-
+    onUpload(null);
   }
 
   return (
+    <div className="mediaUploadContainer">
 
-    <div className="mediaUpload">
-
-      {preview && (
-
-        <div className="mediaPreview">
+      {preview ? (
+        <div className="mediaPreviewCard">
 
           {preview.type?.startsWith("image") && (
-
             <img
-
               src={preview.url}
-
               alt="Preview"
-
               className="broadcastImage"
-
             />
-
           )}
 
           {preview.type?.startsWith("video") && (
-
             <video
-
               src={preview.url}
-
               controls
-
               className="broadcastVideo"
-
             />
-
           )}
 
           {!preview.type?.startsWith("image") &&
             !preview.type?.startsWith("video") && (
-
-              <a
-
-                href={preview.url}
-
-                target="_blank"
-
-                rel="noreferrer"
-
-              >
-
+              <div className="filePreview">
                 📎 {preview.name}
-
-              </a>
-
+              </div>
           )}
 
-          <div
-            style={{
-              marginTop: "10px",
-              display: "flex",
-              gap: "10px",
-            }}
-          >
+          <div className="mediaActions">
 
-            <label className="broadcastButton">
-
-              Change
-
+            <label className="changeMediaBtn">
+              Change Media
               <input
-
-                type="file"
-
-                accept="image/*,video/*,.pdf,.doc,.docx"
-
                 hidden
-
+                type="file"
+                accept="image/*,video/*,.pdf,.doc,.docx"
                 onChange={handleChange}
-
               />
-
             </label>
 
             <button
-
               type="button"
-
-              className="createVocalsButton"
-
+              className="removeMediaBtn"
               onClick={removeMedia}
-
             >
-
-              Remove
-
+              Remove Media
             </button>
 
           </div>
 
         </div>
 
-      )}
+      ) : (
 
-      {!preview && (
+        <label className="uploadMediaBtn">
 
-        <label className="broadcastButton">
-
-          Upload Attachment
+          📎 Upload Attachment
 
           <input
-
-            type="file"
-
-            accept="image/*,video/*,.pdf,.doc,.docx"
-
             hidden
-
+            type="file"
+            accept="image/*,video/*,.pdf,.doc,.docx"
             onChange={handleChange}
-
           />
 
         </label>
@@ -189,13 +115,11 @@ export default function MediaUpload({
       )}
 
       {uploading && (
-
-        <p>Uploading...</p>
-
+        <p className="uploadingText">
+          Uploading...
+        </p>
       )}
 
     </div>
-
   );
-
 }

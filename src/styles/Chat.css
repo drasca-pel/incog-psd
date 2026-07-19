@@ -1,0 +1,105 @@
+/* =========================
+   INCOG CHAT PAGE
+========================= */
+
+.chatPage {
+  min-height: 100vh;
+  background: #050505;
+  color: white;
+  padding: 20px;
+  padding-bottom: 90px;
+}
+
+
+.chatPage h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #ffffff;
+}
+
+
+/* Empty state */
+
+.chatPage > p {
+  color: #8b8b8b;
+  text-align: center;
+  margin-top: 50px;
+  font-size: 15px;
+}
+
+
+/* Chat card */
+
+.chatCard {
+  background: #111111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+
+.chatCard:hover {
+  border-color: #2d8cff;
+  transform: translateY(-2px);
+}
+
+
+.chatCard h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: white;
+}
+
+
+.chatCard p {
+  margin: 0;
+  color: #9b9b9b;
+  font-size: 14px;
+}
+
+
+/* Optional chat avatar area for future */
+
+.chatAvatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: #1c1c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Mobile adjustment */
+
+@media (max-width: 600px) {
+
+  .chatPage {
+    padding: 15px;
+  }
+
+
+  .chatPage h1 {
+    font-size: 24px;
+  }
+
+
+  .chatCard {
+    padding: 15px;
+    border-radius: 14px;
+  }
+
+}
+.backButton {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
