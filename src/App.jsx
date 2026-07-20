@@ -21,6 +21,7 @@ import BottomNav from "./components/BottomNav";
 import MyBroadcasts from "./pages/MyBroadcasts";
 import EditBroadcast from "./pages/EditBroadcast";
 import { checkExpiredBroadcasts } from "./utils/checkExpiredBroadcasts";
+import InterestedCandidates from "./pages/InterestedCandidates";
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
@@ -84,6 +85,14 @@ export default function App() {
   element={
     <PrivateRoute>
       <EditBroadcast />
+    </PrivateRoute>
+  }
+/>
+         <Route
+  path="/interested-candidates/:id"
+  element={
+    <PrivateRoute>
+      <InterestedCandidates />
     </PrivateRoute>
   }
 />

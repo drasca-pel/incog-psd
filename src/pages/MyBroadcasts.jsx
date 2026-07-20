@@ -185,10 +185,37 @@ alert(error.message);
       .filter((broadcast) => broadcast.status === "in_progress")
       .map((broadcast) => (
         <div key={broadcast.id} className="broadcastCard">
-          <h3>{broadcast.title}</h3>
-          <p>{broadcast.description}</p>
-          <span className="statusBadge">In Progress</span>
-        </div>
+  <h3>{broadcast.title}</h3>
+
+  <p>{broadcast.description}</p>
+
+  <span className="statusBadge">
+    In Progress
+  </span>
+
+  <div className="broadcastActions">
+
+    <button
+      className="editButton"
+      onClick={() =>
+        navigate(`/interested-candidates/${broadcast.id}`)
+      }
+    >
+      View Interested Candidates
+    </button>
+
+    <button
+      className="deleteButton"
+      onClick={() =>
+        alert("Complete Project coming next...")
+      }
+    >
+      Complete Project
+    </button>
+
+  </div>
+
+</div>
       ))}
 
     {broadcasts.filter((broadcast) => broadcast.status === "progress").length === 0 && (

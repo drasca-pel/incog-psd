@@ -84,7 +84,10 @@ for (const item of snapshot.docs) {
       continue;
     }
 
-    list.push(alert);
+   list.push({
+  ...alert,
+  interestedCandidates: broadcast.interestedCandidates || []
+});
 
   } catch (error) {
     console.error(error);
@@ -114,15 +117,15 @@ setAlerts(list);
       console.error("Error rejecting alert:", error);
     }
   }
+function acceptAlert(alert) {
+  const confirmAccept = window.confirm(
+    "Do you want to view this project and express interest?"
+  );
 
-  function acceptAlert(alert) {
-    const confirmAccept = window.confirm("Do you want to accept this project?");
+  if (!confirmAccept) return;
 
-    if (!confirmAccept) return;
-
-    // Chat connection comes next
-    console.log("Accepted:", alert);
-  }
+  navigate(`/broadcast/${alert.broadcastId}`);
+}
 
   const filteredAlerts =
     selectedSkill === "All My Skills"
@@ -164,25 +167,41 @@ setAlerts(list);
               <span>{alert.group}</span>
             </div>
 
-            <div className="alertButtons">
-              <button
-                className="viewBtn"
-                onClick={() => navigate(`/broadcast/${alert.broadcastId}`)}
-              >
-                View
-              </button>
+            {alert.interestedCandidates?.some(
+  (person) => person.uid === auth.currentUser.uid
+) ? (
+  <div className="submittedStatus">
+    <h4>Interest Submitted ✓</h4>
+    <p>Waiting for owner response</p>
+  </div>
+) : (
+  <div className="alertButtons">
 
-              <button className="acceptBtn" onClick={() => acceptAlert(alert)}>
-                Accept
-              </button>
+    <button
+      className="viewBtn"
+      onClick={() =>
+        navigate(`/broadcast/${alert.broadcastId}`)
+      }
+    >
+      View
+    </button>
 
-              <button
-                className="rejectBtn"
-                onClick={() => rejectAlert(alert.id)}
-              >
-                Reject
-              </button>
-            </div>
+    <button
+      className="acceptBtn"
+      onClick={() => acceptAlert(alert)}
+    >
+      Accept
+    </button>
+
+    <button
+      className="rejectBtn"
+      onClick={() => rejectAlert(alert.id)}
+    >
+      Reject
+    </button>
+
+  </div>
+)}
           </div>
         ))
       )}

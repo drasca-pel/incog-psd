@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   doc,
   getDoc,
-  addDoc,
   updateDoc,
-  collection,
-  serverTimestamp,
+  arrayUnion,
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase/firebase";
@@ -16,7 +14,7 @@ import "../styles/BroadcastDetails.css";
 export default function BroadcastDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const [alreadyInterested, setAlreadyInterested] = useState(false);
   const [broadcast, setBroadcast] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,11 +32,22 @@ export default function BroadcastDetails() {
       console.log("Exists:", snap.exists());
 
       if (snap.exists()) {
-        setBroadcast({
-          id: snap.id,
-          ...snap.data(),
-        });
-      }
+
+  const data = snap.data();
+
+  setBroadcast({
+    id: snap.id,
+    ...data,
+  });
+
+  const interested = data.interestedCandidates || [];
+
+  const exists = interested.some(
+    (person) => person.uid === auth.currentUser.uid
+  );
+
+  setAlreadyInterested(exists);
+}
     } catch (error) {
       console.error(error);
     }
@@ -47,48 +56,37 @@ export default function BroadcastDetails() {
   }
 
   async function acceptProject() {
-    const confirmAccept = window.confirm(
-      "Do you want to accept this project?"
+    console.log("Accept button clicked");
+  const confirmAccept = window.confirm(
+    "Do you want to express interest in this project?"
+  );
+
+  if (!confirmAccept) return;
+
+  try {
+    const helper = {
+      uid: auth.currentUser.uid,
+      name: auth.currentUser.displayName || "INCOG User",
+      acceptedAt: Date.now(),
+    };
+  console.log(helper);
+console.log(broadcast.id);
+    await updateDoc(doc(db, "broadcasts", broadcast.id), {
+      interestedCandidates: arrayUnion(helper),
+    });
+
+    alert(
+      "Interest submitted successfully.\n\nWait for the broadcast owner to start a chat."
     );
 
-    if (!confirmAccept) return;
-
-    try {
-      const chatRef = await addDoc(
-        collection(db, "chats"),
-        {
-          broadcastid: broadcast.id,
-          creatorid: broadcast.creatorid,
-          helperid: auth.currentUser.uid,
-          creatorname: broadcast.creatorname,
-          helpername:
-            auth.currentUser.displayName ||
-            "INCOG User",
-
-          title: broadcast.title,
-
-          status: "active",
-
-          createdat: serverTimestamp(),
-        }
-      );
-
-      await updateDoc(
-        doc(db, "broadcasts", broadcast.id),
-        {
-          status: "in_progress",
-          accepted: true,
-          acceptedby: auth.currentUser.uid,
-        }
-      );
-
-      navigate(`/chat/${chatRef.id}`);
-
-    } catch (error) {
-      console.error(error);
-      alert("Unable to accept project.");
-    }
+    navigate(-1);
+  } catch (error) {
+    console.error(error);
+    alert("Unable to submit interest.");
   }
+}
+   
+       
 
   if (loading) {
     return (
