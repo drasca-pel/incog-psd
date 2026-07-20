@@ -12,6 +12,7 @@ import {
 
 import { auth, db } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
+import { isBroadcastExpired } from "../utils/broadcastExpiry";
 
 import "../styles/Alerts.css";
 
@@ -55,13 +56,42 @@ export default function Alerts() {
 
     return onSnapshot(
       q,
-      (snapshot) => {
-        const list = snapshot.docs.map((item) => ({
-          id: item.id,
-          ...item.data(),
-        }));
+      async (snapshot) => {
+       const list = [];
 
-        setAlerts(list);
+for (const item of snapshot.docs) {
+  const alert = {
+    id: item.id,
+    ...item.data(),
+  };
+
+  try {
+    const broadcastSnap = await getDoc(
+      doc(db, "broadcasts", alert.broadcastId)
+    );
+
+    if (!broadcastSnap.exists()) continue;
+
+    const broadcast = {
+      id: broadcastSnap.id,
+      ...broadcastSnap.data(),
+    };
+
+    if (
+      broadcast.status === "expired" ||
+      isBroadcastExpired(broadcast)
+    ) {
+      continue;
+    }
+
+    list.push(alert);
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+setAlerts(list);
         setLoading(false);
       },
       (error) => {

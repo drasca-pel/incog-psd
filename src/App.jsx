@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -14,24 +14,32 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Alerts from "./pages/Alerts";
 import Chat from "./pages/Chat";
+import ChatRoom from "./pages/ChatRoom";
 import Community from "./pages/Community";
 import BroadcastDetails from "./pages/BroadcastDetails";
 import BottomNav from "./components/BottomNav";
 import MyBroadcasts from "./pages/MyBroadcasts";
 import EditBroadcast from "./pages/EditBroadcast";
+import { checkExpiredBroadcasts } from "./utils/checkExpiredBroadcasts";
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setUser(currentUser);
 
-    return () => unsubscribe();
-  }, []);
+    if (currentUser) {
+      await checkExpiredBroadcasts();
+    }
+
+    setLoading(false);
+  });
+
+  return () => unsubscribe();
+}, []);
 
   if (loading) {
     return (
@@ -69,12 +77,18 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/broadcast/:id" element={<BroadcastDetails />} />
+        <Route path="/broadcast/:id" element={<PrivateRoute><BroadcastDetails /></PrivateRoute>} />
         <Route path="/my-broadcasts" element={<PrivateRoute><MyBroadcasts /></PrivateRoute>} />
-        <Route
+      <Route
   path="/edit-broadcast/:id"
-  element={<EditBroadcast />}
+  element={
+    <PrivateRoute>
+      <EditBroadcast />
+    </PrivateRoute>
+  }
 />
+         <Route path="/chat/:id" element={<PrivateRoute><ChatRoom /></PrivateRoute>} />
+
         {/* Setup */}
         <Route
           path="/skillselection"

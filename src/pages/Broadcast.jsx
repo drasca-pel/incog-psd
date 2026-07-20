@@ -84,7 +84,13 @@ export default function Broadcast() {
 
         setLoading(false);
         return;
-      }
+      } let uploadedMedia = null;
+
+if (media) {
+  uploadedMedia = await uploadToCloudinary(
+    media.file
+  );
+}
          
      
   const broadcastRef = await addDoc(
@@ -99,25 +105,27 @@ export default function Broadcast() {
 
     targetSkills: [skill],
 
-    media: media,
+    media: uploadedMedia,
 
     status: "active",
 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    
+Accepted: false,
+acceptedBy: null,
 
-    accepted: false,
-    acceptedBy: null,
+expiresIn: 7,
 
-    expiresIn: 7,
+expiresAt: new Date(
+  Date.now() + 7 * 24 * 60 * 60 * 1000
+).getTime(),
 
-    expiresAt:
-      Date.now() + 7 * 24 * 60 * 60 * 1000,
+editExpiresAt: new Date(
+  Date.now() + 60 * 60 * 1000
+).getTime(),
 
-    editExpiresAt:
-      Date.now() + 60 * 60 * 1000,
-
-    lastReminderAt: serverTimestamp(),
+lastReminderAt: serverTimestamp(),
 
     reminderCount: 0,
   }

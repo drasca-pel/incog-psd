@@ -56,6 +56,16 @@ async function loadBroadcasts() {
 
   try {
     await deleteDoc(doc(db, "broadcasts", id));
+    const alertsQuery = query(
+  collection(db, "alerts"),
+  where("broadcastId", "==", id)
+);
+
+const alertsSnapshot = await getDocs(alertsQuery);
+
+for (const alertDoc of alertsSnapshot.docs) {
+  await deleteDoc(alertDoc.ref);
+}
 
     setBroadcasts((prev) =>
       prev.filter((broadcast) => broadcast.id !== id)
@@ -172,7 +182,7 @@ alert(error.message);
        {activeTab === "progress" && (
   <div>
     {broadcasts
-      .filter((broadcast) => broadcast.status === "progress")
+      .filter((broadcast) => broadcast.status === "in_progress")
       .map((broadcast) => (
         <div key={broadcast.id} className="broadcastCard">
           <h3>{broadcast.title}</h3>

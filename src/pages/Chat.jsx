@@ -92,9 +92,10 @@ export default function Chat() {
         chats.map(chat => (
 
           <div
-            key={chat.id}
-            className="chatCard"
-          >
+  key={chat.id}
+  className="chatCard"
+  onClick={() => navigate(`/chat/${chat.id}`)}
+>
 
             <h3>
               {chat.otherUserName || "INCOG User"}
