@@ -17,6 +17,7 @@ export default function BroadcastDetails() {
   const [alreadyInterested, setAlreadyInterested] = useState(false);
   const [broadcast, setBroadcast] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     loadBroadcast();
@@ -72,8 +73,15 @@ export default function BroadcastDetails() {
   console.log(helper);
 console.log(broadcast.id);
     await updateDoc(doc(db, "broadcasts", broadcast.id), {
-      interestedCandidates: arrayUnion(helper),
-    });
+  status: "in_progress",
+
+  interestedCandidates: arrayUnion({
+    uid: auth.currentUser.uid,
+    name: auth.currentUser.displayName || "INCOG User",
+    acceptedAt: Date.now(),
+    chatStarted: false,
+  }),
+});
 
     alert(
       "Interest submitted successfully.\n\nWait for the broadcast owner to start a chat."
@@ -115,10 +123,10 @@ console.log(broadcast.id);
       <h1>{broadcast.title}</h1>
 
       <div className="detailsMeta">
-        <span>{broadcast.creatorname}</span>
+        <span>{broadcast.creatorName}</span>
 
         <span>
-          {broadcast.targetskills?.[0]}
+          {broadcast.targetSkills?.[0]}
         </span>
       </div>
 
@@ -126,48 +134,34 @@ console.log(broadcast.id);
         {broadcast.description}
       </p>
 
-      {broadcast.media?.url && (
-        <>
-          {broadcast.media.type?.startsWith("image") ? (
-            <img
-              src={broadcast.media.url}
-              alt="Broadcast"
-              className="detailsMedia"
-            />
-          ) : broadcast.media.type?.startsWith("video") ? (
-            <video
-              controls
-              className="detailsMedia"
-            >
-              <source
-                src={broadcast.media.url}
-              />
-              Your browser does not support video.
-            </video>
-          ) : (
-            <div className="attachmentCard">
-              <p>Attachment Available</p>
+     {broadcast.media && (
+  <>
+    {broadcast.media.type?.startsWith("image") && (
+      <img
+  src={broadcast.media.url}
+  alt="Broadcast"
+  className="detailsMedia"
+  onClick={() => setSelectedImage(broadcast.media.url)}
+/>
+    )}
 
-              <a
-                href={broadcast.media.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open Attachment
-              </a>
-            </div>
-          )}
-        </>
-      )}
+    {broadcast.media.type?.startsWith("video") && (
+      <video controls className="detailsMedia">
+        <source src={broadcast.media.url} />
+      </video>
+    )}
+  </>
+)}
 
       <div className="detailsButtons">
 
         <button
-          className="acceptBtn"
-          onClick={acceptProject}
-        >
-          Accept
-        </button>
+  className="acceptBtn"
+  onClick={acceptProject}
+  disabled={alreadyInterested}
+>
+  {alreadyInterested ? "Already Interested" : "Accept"}
+</button>
 
         <button
           className="rejectBtn"
@@ -177,6 +171,22 @@ console.log(broadcast.id);
         </button>
 
       </div>
+      {selectedImage && (
+  <div className="imageViewer">
+    <button
+      className="imageBackButton"
+      onClick={() => setSelectedImage(null)}
+    >
+      ←
+    </button>
+
+    <img
+      src={selectedImage}
+      alt="Full View"
+      className="imageViewerImg"
+    />
+  </div>
+)}
 
     </div>
   );

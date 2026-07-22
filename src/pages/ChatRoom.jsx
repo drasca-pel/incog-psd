@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { auth, db } from "../firebase/firebase";
-
 import {
   doc,
   getDoc,
-  updateDoc,
   collection,
   addDoc,
   query,
   orderBy,
   onSnapshot,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
+
+import { auth, db } from "../firebase/firebase";
 
 import "../styles/ChatRoom.css";
 
 export default function ChatRoom() {
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -26,108 +27,226 @@ export default function ChatRoom() {
   const [text, setText] = useState("");
 
   useEffect(() => {
+
+    if (!id) return;
+
     loadChat();
-    const unsubscribe = listenForMessages();
+
+    const unsubscribe = listenMessages();
+
     return () => unsubscribe();
-  }, []);
+
+  }, [id]);
 
   async function loadChat() {
+
     try {
-      const snap = await getDoc(doc(db, "chats", id));
+
+      const snap = await getDoc(
+        doc(db, "chats", id)
+      );
 
       if (snap.exists()) {
+
         setChat({
           id: snap.id,
-          ...snap.data(),
+          ...snap.data()
         });
+
       }
-    } catch (error) {
+
+    } catch(error) {
+
       console.error(error);
+
     }
+
   }
 
-  function listenForMessages() {
+  function listenMessages() {
+
     const q = query(
-      collection(db, "chats", id, "messages"),
-      orderBy("createdAt", "asc")
+
+      collection(
+        db,
+        "chats",
+        id,
+        "messages"
+      ),
+
+      orderBy(
+        "createdAt",
+        "asc"
+      )
+
     );
 
-    return onSnapshot(q, (snapshot) => {
-      setMessages(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-      );
-    });
+    return onSnapshot(
+      q,
+      (snapshot)=>{
+
+        setMessages(
+
+          snapshot.docs.map(
+            (doc)=>({
+              id:doc.id,
+              ...doc.data()
+            })
+          )
+
+        );
+
+      }
+
+    );
+
   }
-async function sendMessage() {
-    if (!text.trim()) return;
 
-    try {
+  async function sendMessage(){
+
+    if(!text.trim()) return;
+
+    try{
+
       await addDoc(
-        collection(db, "chats", id, "messages"),
+
+        collection(
+          db,
+          "chats",
+          id,
+          "messages"
+        ),
+
         {
-          senderId: auth.currentUser.uid,
+
+          senderId:
+          auth.currentUser.uid,
+
           senderName:
-            auth.currentUser.displayName || "INCOG User",
+          auth.currentUser.displayName ||
+          "INCOG User",
 
-          text: text,
+          text:text,
 
-          createdAt: serverTimestamp(),
+          createdAt:
+          serverTimestamp()
+
         }
+
       );
 
-      await updateDoc(doc(db, "chats", id), {
-        lastMessage: text,
-        lastMessageAt: serverTimestamp(),
-      });
+      await updateDoc(
+
+        doc(
+          db,
+          "chats",
+          id
+        ),
+
+        {
+
+          lastMessage:text,
+
+          lastMessageAt:
+          serverTimestamp()
+
+        }
+
+      );
 
       setText("");
-    } catch (error) {
+
+    }catch(error){
+
       console.error(error);
-      alert("Unable to send message.");
+
+      alert(
+        "Message failed"
+      );
+
     }
+
   }
 
-  if (!chat) {
+  if(!chat){
+
     return (
+
       <div className="chatRoomPage">
-        Loading...
+
+        Loading chat...
+
       </div>
+
     );
+
   }
 
   return (
+
     <div className="chatRoomPage">
 
       <div className="chatHeader">
 
         <button
+
           className="backButton"
-          onClick={() => navigate(-1)}
+
+          onClick={()=>navigate(-1)}
+
         >
+
           ←
+
         </button>
 
-        <h2>{chat.title}</h2>
+        <div>
+
+          <h2>
+            {chat.projectTitle ||
+            chat.title ||
+            "Chat"}
+          </h2>
+
+          <small>
+
+            {chat.projectSkill || ""}
+
+          </small>
+
+        </div>
 
       </div>
 
       <div className="messagesContainer">
 
-        {messages.map((message) => (
+        {messages.map((message)=>(
 
           <div
+
             key={message.id}
+
             className={
+
               message.senderId === auth.currentUser.uid
-                ? "myMessage"
-                : "otherMessage"
+
+              ?
+
+              "myMessage"
+
+              :
+
+              "otherMessage"
+
             }
+
           >
 
-            <p>{message.text}</p>
+            <p>
+
+              {message.text}
+
+            </p>
 
           </div>
 
@@ -138,21 +257,35 @@ async function sendMessage() {
       <div className="chatInputArea">
 
         <input
+
           className="chatInput"
-          placeholder="Type your message..."
+
+          placeholder="Type message..."
+
           value={text}
-          onChange={(e) => setText(e.target.value)}
+
+          onChange={
+            (e)=>setText(e.target.value)
+          }
+
         />
 
         <button
+
           className="sendButton"
+
           onClick={sendMessage}
+
         >
+
           Send
+
         </button>
 
       </div>
 
     </div>
+
   );
+
 }

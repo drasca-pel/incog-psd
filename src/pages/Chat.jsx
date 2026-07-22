@@ -1,118 +1,82 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-} from "firebase/firestore";
 
-import { auth, db } from "../firebase/firebase";
+import DirectChats from "./DirectChats";
+import Groups from "./Groups";
+import Portfolio from "./Portfolio";
 
 import "../styles/Chat.css";
 
 export default function Chat() {
   const navigate = useNavigate();
 
-  const [chats, setChats] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-
-  useEffect(() => {
-
-    if (!auth.currentUser) return;
-
-
-    const q = query(
-      collection(db, "chats"),
-      where(
-        "members",
-        "array-contains",
-        auth.currentUser.uid
-      )
-    );
-
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-
-        const list = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
-        setChats(list);
-        setLoading(false);
-
-      },
-      (error) => {
-
-        console.error(
-          "Chat Error:",
-          error
-        );
-
-        setLoading(false);
-
-      }
-    );
-
-
-    return () => unsubscribe();
-
-
-  }, []);
-
-
+  const [activeTab, setActiveTab] = useState("direct");
 
   return (
-
     <div className="chatPage">
 
       <button
-  className="backButton"
-  onClick={() => navigate(-1)}
->
-  ←
-</button> 
+        className="backButton"
+        onClick={() => navigate(-1)}
+      >
+        ←
+      </button>
+
       <h1>Chats</h1>
-     
 
-      {loading ? (
+      <div className="chatTabs">
 
-        <p>Loading chats...</p>
+        <button
+          className={
+            activeTab === "direct"
+              ? "activeTab"
+              : ""
+          }
+          onClick={() => setActiveTab("direct")}
+        >
+          Direct Chats
+        </button>
 
-      ) : chats.length === 0 ? (
+        <button
+          className={
+            activeTab === "groups"
+              ? "activeTab"
+              : ""
+          }
+          onClick={() => setActiveTab("groups")}
+        >
+          Groups
+        </button>
 
-        <p>No chats yet.</p>
+        <button
+          className={
+            activeTab === "portfolio"
+              ? "activeTab"
+              : ""
+          }
+          onClick={() => setActiveTab("portfolio")}
+        >
+          Portfolio
+        </button>
 
-      ) : (
+      </div>
 
-        chats.map(chat => (
+      <div className="chatContent">
 
-          <div
-  key={chat.id}
-  className="chatCard"
-  onClick={() => navigate(`/chat/${chat.id}`)}
->
+        {activeTab === "direct" && (
+          <DirectChats />
+        )}
 
-            <h3>
-              {chat.otherUserName || "INCOG User"}
-            </h3>
+        {activeTab === "groups" && (
+          <Groups />
+        )}
 
-            <p>
-              {chat.lastMessage || "No messages yet"}
-            </p>
+        {activeTab === "portfolio" && (
+          <Portfolio />
+        )}
 
-          </div>
-
-        ))
-
-      )}
+      </div>
 
     </div>
-
   );
-
 }

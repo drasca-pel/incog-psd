@@ -112,8 +112,9 @@ if (media) {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     
-Accepted: false,
+accepted: false,
 acceptedBy: null,
+interestedCandidate: [],
 
 expiresIn: 7,
 
@@ -182,6 +183,12 @@ for (const userDoc of usersSnapshot.docs) {
     <div className="broadcastPage">
       <div className="broadcastContainer">
         <div className="broadcastCard">
+          <button
+  className="backButton"
+  onClick={() => navigate(-1)}
+>
+  ←
+</button>
           <h1>Create Broadcast</h1>
 
           <p className="broadcastSubtitle">

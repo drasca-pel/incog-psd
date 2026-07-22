@@ -19,6 +19,7 @@ export default function MyBroadcasts() {
  const [activeTab, setActiveTab] = useState("active");
 const [broadcasts, setBroadcasts] = useState([]);
 const [loading, setLoading] = useState(true);
+const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
   loadBroadcasts();
@@ -118,15 +119,22 @@ alert(error.message);
       .map((broadcast) => (
        <div key={broadcast.id} className="broadcastCard">
   <h3>{broadcast.title}</h3>
-  <p>{broadcast.description}</p>
+
+<p className="broadcastGroup">
+  {broadcast.targetSkills?.[0]}
+</p>
+
+<p>{broadcast.description}</p>
+
        {broadcast.media && (
   <>
     {broadcast.media.type?.startsWith("image") && (
       <img
-        src={broadcast.media.url}
-        alt={broadcast.media.name}
-        className="broadcastImage"
-      />
+  src={broadcast.media.url}
+  alt={broadcast.media.name}
+  className="broadcastImage"
+  onClick={() => setSelectedImage(broadcast.media.url)}
+/>
     )}
 
     {broadcast.media.type?.startsWith("video") && (
@@ -187,7 +195,11 @@ alert(error.message);
         <div key={broadcast.id} className="broadcastCard">
   <h3>{broadcast.title}</h3>
 
-  <p>{broadcast.description}</p>
+<p className="broadcastGroup">
+  {broadcast.targetSkills?.[0]}
+</p>
+
+<p>{broadcast.description}</p>
 
   <span className="statusBadge">
     In Progress
@@ -239,6 +251,22 @@ alert(error.message);
             <div className="plusIcon">+</div>
             <h3>Create a New Broadcast</h3>
         </div>
+        {selectedImage && (
+  <div className="imageViewer">
+    <button
+      className="imageBackButton"
+      onClick={() => setSelectedImage(null)}
+    >
+      ←
+    </button>
+
+    <img
+      src={selectedImage}
+      alt="Full View"
+      className="imageViewerImg"
+    />
+  </div>
+)}
 
       </div>
            
