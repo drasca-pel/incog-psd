@@ -6,7 +6,7 @@ import { auth } from "./firebase/firebase";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import SkillSelection from "./pages/SkillSelection";
+import SkillSelection from "./pages/Skillselection";
 import Dashboard from "./pages/Dashboard";
 import Feed from "./pages/Feed";
 import CreatePost from "./pages/CreatePost";
@@ -116,7 +116,7 @@ export default function App() {
 
         {/* Setup */}
         <Route
-          path="/skillSelection"
+          path="/SkillSelection"
           element={
             <PrivateRoute>
               <SkillSelection />
