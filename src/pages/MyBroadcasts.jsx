@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
+import ConfirmModal from "../components/ConfirmModal";
 
 import {
   collection,
@@ -9,6 +10,9 @@ import {
   doc,
   getDocs,
   deleteDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import "../styles/MyBroadcasts.css";
@@ -20,6 +24,7 @@ export default function MyBroadcasts() {
 const [broadcasts, setBroadcasts] = useState([]);
 const [loading, setLoading] = useState(true);
 const [selectedImage, setSelectedImage] = useState(null);
+const [confirmModal, setConfirmModal] = useState(null);
 
   useEffect(() => {
   loadBroadcasts();
@@ -49,12 +54,39 @@ async function loadBroadcasts() {
 }
   
     const handleDelete = async (id) => {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this broadcast?"
-  );
+  setConfirmModal({
+  title: "Delete Broadcast?",
+  message: "Are you sure you want to delete this broadcast?",
+  confirmText: "Delete",
+  action: async () => {
+    try {
+      await deleteDoc(doc(db, "broadcasts", id));
 
-  if (!confirmDelete) return;
+      const alertsQuery = query(
+        collection(db, "alerts"),
+        where("broadcastId", "==", id)
+      );
 
+      const alertsSnapshot = await getDocs(alertsQuery);
+
+      for (const alertDoc of alertsSnapshot.docs) {
+        await deleteDoc(alertDoc.ref);
+      }
+
+      setBroadcasts((prev) =>
+        prev.filter((broadcast) => broadcast.id !== id)
+      );
+
+      setConfirmModal(null);
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  },
+});
+
+return;
   try {
     await deleteDoc(doc(db, "broadcasts", id));
     const alertsQuery = query(
@@ -67,7 +99,7 @@ const alertsSnapshot = await getDocs(alertsQuery);
 for (const alertDoc of alertsSnapshot.docs) {
   await deleteDoc(alertDoc.ref);
 }
-
+   
     setBroadcasts((prev) =>
       prev.filter((broadcast) => broadcast.id !== id)
     );
@@ -79,7 +111,110 @@ alert(error.message);
   }
 };
 
+      async function completeProject(broadcast) {
+    setConfirmModal({
+  title: "Complete Project?",
+  message: "This will archive the chats and close this project.",
+  confirmText: "Complete",
+  action: async () => {
 
+    try {
+
+      await updateDoc(
+        doc(db, "broadcasts", broadcast.id),
+        {
+          status: "completed",
+          archived: true,
+          completedAt: serverTimestamp(),
+        }
+      );
+
+      setBroadcasts((prev) =>
+        prev.map((item) =>
+          item.id === broadcast.id
+            ? {
+                ...item,
+                status: "completed",
+                archived: true,
+              }
+            : item
+        )
+      );
+
+      setConfirmModal(null);
+
+    } catch (error) {
+      console.error(error);
+      alert("Unable to complete project.");
+    }
+
+  },
+});
+
+return;
+
+    try {
+      // We'll add the Firestore updates here in the next step.
+     await updateDoc(
+    doc(db, "broadcasts", broadcast.id),
+    {
+      status: "completed",
+      archived: true,
+      completedAt: serverTimestamp(),
+    }
+  ); 
+    // todo: Archive Workspace
+// This will later move:
+// 1. Direct Chats
+// 2. Project Group
+// into the Portfolio Workspace.
+
+console.log(
+  "Archiving Workspace for:",
+  broadcast.id,
+  broadcast.title
+);
+  const alertsQuery = query(
+    collection(db, "alerts"),
+    where("broadcastId", "==", broadcast.id)
+  );
+
+  const alertsSnapshot = await getDocs(alertsQuery);
+
+  for (const alertDoc of alertsSnapshot.docs) {
+    await deleteDoc(alertDoc.ref);
+  }
+
+  await addDoc(collection(db, "portfolio"), {
+    projectId: broadcast.id,
+    title: broadcast.title,
+    description: broadcast.description,
+    group: broadcast.targetSkills?.[0] || "",
+    ownerId: auth.currentUser.uid,
+
+    directChats: [],
+    groupChat: null,
+
+    createdAt: serverTimestamp(),
+  });
+
+  setBroadcasts((prev) =>
+    prev.map((item) =>
+      item.id === broadcast.id
+        ? {
+            ...item,
+            status: "completed",
+          }
+        : item
+    )
+  );
+
+  alert("project completed successfully.");
+    }catch (error) {
+    console.error(error);
+    alert("unable to complete project.");
+  }
+  }
   return (
     <div className="myBroadcastsPage">
 
@@ -216,21 +351,19 @@ alert(error.message);
       View Interested Candidates
     </button>
 
-    <button
-      className="deleteButton"
-      onClick={() =>
-        alert("Complete Project coming next...")
-      }
-    >
-      Complete Project
-    </button>
+   <button
+    className="deleteButton"
+    onClick={() => completeProject(broadcast)}
+  >
+    Complete Project
+  </button>
 
   </div>
 
 </div>
       ))}
 
-    {broadcasts.filter((broadcast) => broadcast.status === "progress").length === 0 && (
+    {broadcasts.filter((broadcast) => broadcast.status === "in_progress").length === 0 && (
       <div className="emptyState">
         <h2>No Broadcasts In Progress</h2>
         <p>Broadcasts being worked on will appear here.</p>
@@ -239,12 +372,57 @@ alert(error.message);
   </div>
 )}
 
-        {activeTab === "completed" && (
-          <div className="emptyState">
-            <h2>No Completed Broadcasts</h2>
-            <p>Your completed broadcasts will appear here.</p>
+       {activeTab === "completed" && (
+    <div>
+
+      {broadcasts
+        .filter((broadcast) => broadcast.status === "completed")
+        .map((broadcast) => (
+
+          <div key={broadcast.id} className="broadcastCard">
+
+            <h3>{broadcast.title}</h3>
+
+            <p className="broadcastGroup">
+              {broadcast.targetSkills?.[0]}
+            </p>
+
+            <p>{broadcast.description}</p>
+
+            <span className="statusBadge">
+              Completed
+            </span>
+
+            <div className="broadcastActions">
+
+              <button
+                className="editButton"
+                onClick={() =>
+                  navigate(`/portfolio/${broadcast.id}`)
+                }
+              >
+                View Portfolio
+              </button>
+
+            </div>
+
           </div>
-        )}
+
+        ))}
+
+      {broadcasts.filter(
+        (broadcast) => broadcast.status === "completed"
+      ).length === 0 && (
+
+        <div className="emptyState">
+          <h2>No Completed Broadcasts</h2>
+          <p>Your completed broadcasts will appear here.</p>
+        </div>
+
+      )}
+
+    </div>
+  )}
 
         {/* Create Broadcast Card */}
         <div className="createBroadcastCard" onClick={() => navigate("/broadcast")}>
@@ -269,7 +447,15 @@ alert(error.message);
 )}
 
       </div>
-           
+           {confirmModal && (
+  <ConfirmModal
+    title={confirmModal.title}
+    message={confirmModal.message}
+    confirmText={confirmModal.confirmText}
+    onConfirm={confirmModal.action}
+    onCancel={() => setConfirmModal(null)}
+  />
+)}
 
     </div>
   );

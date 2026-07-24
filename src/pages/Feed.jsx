@@ -1,98 +1,335 @@
-import React, { useState, useEffect } from "react";
-import { auth, db } from "../firebase/firebase";
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useNavigate,
+} from "react-router-dom";
 
 import {
   collection,
-  addDoc,
-  serverTimestamp,
   query,
   orderBy,
-  onSnapshot,
+  limit,
+  startAfter,
+  getDocs,
+  deleteDoc,
   doc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove
+  getDoc,
 } from "firebase/firestore";
 
-import MediaUpload from "../components/MediaUpload";
+import {
+  auth,
+  db,
+} from "../firebase/firebase";
+
+import ConfirmModal from "../components/ConfirmModal";
+import "../styles/Feed.css";
 
 
 export default function Feed(){
 
-  const [text,setText] = useState("");
-  const [media,setMedia] = useState(null);
+
+  const navigate = useNavigate();
+
+
   const [posts,setPosts] = useState([]);
 
-  const [commentText,setCommentText] = useState({});
-  const [comments,setComments] = useState({});
+  const [lastDoc,setLastDoc] = useState(null);
+
+  const [loading,setLoading] = useState(false);
+
+  const [hasMore,setHasMore] = useState(true);
+
+  const [expanded,setExpanded] = useState({});
+
+  const [refreshing,setRefreshing] = useState(false);
+
+  const [selectedPost,setSelectedPost] = useState(null);
+
+  const [userData, setUserData] = useState(null);
+
+
+
+
+
+  async function loadPosts(refresh=false){
+
+
+    if(loading) return;
+
+
+
+    setLoading(true);
+
+
+
+    try{
+
+
+      let q;
+
+
+
+      if(refresh){
+
+
+        q=query(
+
+          collection(db,"feed"),
+
+          orderBy(
+            "createdAt",
+            "desc"
+          ),
+
+          limit(10)
+
+        );
+
+
+      }
+
+      else{
+
+
+        q=query(
+
+          collection(db,"feed"),
+
+          orderBy(
+            "createdAt",
+            "desc"
+          ),
+
+          ...(lastDoc
+          ?
+          [startAfter(lastDoc)]
+          :
+          []),
+
+          limit(10)
+
+        );
+
+
+      }
+
+
+
+
+      const snap =
+        await getDocs(q);
+
+
+
+      const newPosts =
+        snap.docs.map(item=>({
+
+          id:item.id,
+
+          ...item.data()
+
+        }));
+
+
+
+
+
+      const shuffled =
+        [...newPosts].sort(
+          ()=>Math.random()-0.5
+        );
+
+
+
+
+
+      if(refresh){
+
+
+        setPosts(shuffled);
+
+
+      }
+
+      else{
+
+
+        setPosts(prev=>{
+
+
+          const combined=[
+
+            ...prev,
+
+            ...shuffled
+
+          ];
+
+
+
+          return Array.from(
+
+            new Map(
+
+              combined.map(
+                post=>[
+                  post.id,
+                  post
+                ]
+              )
+
+            ).values()
+
+          );
+
+
+        });
+
+
+      }
+
+
+
+
+
+
+      if(snap.empty){
+
+        setHasMore(false);
+
+      }
+
+      else{
+
+
+        setLastDoc(
+
+          snap.docs[
+            snap.docs.length-1
+          ]
+
+        );
+
+
+      }
+
+
+
+    }
+    catch(error){
+
+      console.log(error);
+
+    }
+    finally{
+
+      setLoading(false);
+
+      setRefreshing(false);
+
+    }
+
+
+  }
+
+
+
+
+
+
 
 
   useEffect(()=>{
 
-    const q = query(
-      collection(db,"posts"),
-      orderBy("createdAt","desc")
-    );
+
+    const loadUser = async () => {
+      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+
+      if (snap.exists()) {
+        setUserData(snap.data());
+      }
+    };
+
+    loadPosts();
+    loadUser();
 
 
-    const unsubscribe = onSnapshot(q,(snapshot)=>{
-
-      setPosts(
-        snapshot.docs.map(doc=>({
-          id:doc.id,
-          ...doc.data()
-        }))
-      );
-
-    });
-
-
-    return ()=>unsubscribe();
 
   },[]);
 
 
 
-  async function createPost(e){
-
-    e.preventDefault();
 
 
-    if(!text && !media){
-      alert("Add text or media");
-      return;
+
+
+
+  useEffect(()=>{
+
+
+    function scroll(){
+
+
+      if(
+
+        window.innerHeight +
+        window.scrollY >=
+        document.documentElement.scrollHeight-300
+
+      ){
+
+        if(hasMore)
+
+        loadPosts();
+
+
+      }
+
+
     }
 
 
-    await addDoc(
-      collection(db,"posts"),
-      {
 
-        text,
-
-        media,
-
-        userId:
-        auth.currentUser.uid,
-
-
-        username:
-        auth.currentUser.displayName ||
-        "INCOG User",
-
-
-        likes:[],
-
-
-        createdAt:
-        serverTimestamp()
-
-      }
+    window.addEventListener(
+      "scroll",
+      scroll
     );
 
 
-    setText("");
-    setMedia(null);
+    return ()=>{
+
+      window.removeEventListener(
+        "scroll",
+        scroll
+      );
+
+    };
+
+
+  },[lastDoc,hasMore,loading]);
+
+
+
+
+
+
+
+
+
+  async function refreshFeed(){
+
+
+    setRefreshing(true);
+
+    setLastDoc(null);
+
+    setHasMore(true);
+
+    await loadPosts(true);
+
 
   }
 
@@ -100,89 +337,54 @@ export default function Feed(){
 
 
 
-  async function likePost(post){
-
-
-    const ref = doc(
-      db,
-      "posts",
-      post.id
-    );
-
-
-    const liked =
-    post.likes?.includes(
-      auth.currentUser.uid
-    );
-
-
-    await updateDoc(ref,{
-
-      likes: liked
-
-      ?
-
-      arrayRemove(
-        auth.currentUser.uid
-      )
-
-      :
-
-      arrayUnion(
-        auth.currentUser.uid
-      )
-
-    });
-
-  }
 
 
 
 
+  async function deletePost(){
 
-  async function addComment(postId){
 
-
-    if(!commentText[postId])
+    if(!selectedPost)
     return;
 
 
 
-    await addDoc(
+    if(
 
-      collection(
+      selectedPost.userId !==
+      auth.currentUser.uid
+
+    )
+    return;
+
+
+
+    await deleteDoc(
+
+      doc(
         db,
-        "posts",
-        postId,
-        "comments"
-      ),
-
-      {
-
-        text:
-        commentText[postId],
-
-
-        username:
-        auth.currentUser.displayName ||
-        "INCOG User",
-
-
-        createdAt:
-        serverTimestamp()
-
-      }
+        "feed",
+        selectedPost.id
+      )
 
     );
 
 
-    setCommentText({
 
-      ...commentText,
+    setPosts(prev=>
 
-      [postId]:""
+      prev.filter(
 
-    });
+        p=>
+        p.id !== selectedPost.id
+
+      )
+
+    );
+
+
+    setSelectedPost(null);
+
 
   }
 
@@ -190,39 +392,21 @@ export default function Feed(){
 
 
 
-  function sharePost(post){
 
 
-    const url =
-    window.location.origin +
-    "/post/" +
-    post.id;
 
 
-    if(navigator.share){
+  function toggleText(id){
 
-      navigator.share({
 
-        title:"INCOG Post",
+    setExpanded(prev=>({
 
-        text:
-        post.text,
+      ...prev,
 
-        url
+      [id]:
+      !prev[id]
 
-      });
-
-    }
-
-    else{
-
-      navigator.clipboard.writeText(url);
-
-      alert(
-        "Post link copied"
-      );
-
-    }
+    }));
 
   }
 
@@ -230,248 +414,326 @@ export default function Feed(){
 
 
 
-  return (
-
-<div style={styles.page}>
-
-<TopBar title="Feed"/>
 
 
-<div style={styles.container}>
 
 
-<div style={styles.card}>
+  return(
+
+    <div className="feedPage">
 
 
-<h3>
-Create Post
-</h3>
+
+      <div className="feedHeader">
 
 
-<form onSubmit={createPost}>
+        <button
+        onClick={()=>navigate(-1)}
+        className="backButton"
+        >
+
+        ←
+
+        </button>
 
 
-<textarea
 
-placeholder="Share something..."
+        <h1>
+        INCOG Feed
+        </h1>
 
-value={text}
 
-onChange={
-e=>setText(e.target.value)
+
+        <button
+        onClick={()=>navigate("/create-post")}
+        >
+
+        + Post
+
+        </button>
+
+
+
+      </div>
+
+
+
+
+
+      <button
+
+      className="refreshButton"
+
+      onClick={refreshFeed}
+
+      >
+
+      {refreshing
+      ?
+      "Refreshing..."
+      :
+      "↻ Refresh Feed"}
+
+      </button>
+
+
+
+
+
+
+
+
+
+      <div className="feedContainer">
+
+
+      {
+
+      posts.map(post=>(
+
+
+        <div
+
+        className="feedCard"
+
+        key={post.id}
+
+        onContextMenu={(e)=>{
+
+
+          e.preventDefault();
+
+
+          if(
+
+          post.userId ===
+          auth.currentUser.uid
+
+          ){
+
+          setSelectedPost(post);
+
+          }
+
+
+        }}
+
+        >
+
+
+
+
+
+
+        <div className="feedUser">
+
+
+        <div
+
+        className="clickProfile"
+
+        onClick={()=>navigate(
+
+          `/profile/${post.userId}`
+
+        )}
+        style={{ cursor: "pointer", overflow: "hidden", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+
+        >
+
+
+        {post.userId === auth.currentUser.uid && userData?.photoURL ? (
+          <img
+            src={userData.photoURL}
+            alt="profile"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+            }}
+          />
+        ) : post.photoURL ? (
+          <img
+            src={post.photoURL}
+            alt="profile"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+            }}
+          />
+        ) : (
+          <div
+            className="feedAvatar"
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {post.name?.charAt(0)?.toUpperCase()}
+          </div>
+        )}
+
+
+        </div>
+
+
+
+
+        <span>
+        {post.name}
+        </span>
+
+
+        </div>
+
+
+
+
+
+
+
+        <p>
+
+
+        {
+
+        expanded[post.id]
+
+        ?
+
+        post.text
+
+        :
+
+        post.text?.length > 150
+
+        ?
+
+        post.text.substring(0,150)+"..."
+
+        :
+
+        post.text
+
+        }
+
+
+
+        </p>
+
+
+
+
+
+        {
+
+        post.text?.length > 150 &&
+
+        <button
+
+        onClick={()=>toggleText(post.id)}
+
+        >
+
+        {
+        expanded[post.id]
+        ?
+        "View Less"
+        :
+        "View More"
+        }
+
+        </button>
+
+        }
+
+
+
+
+
+
+
+        {
+
+        post.mediaType==="image"
+
+        &&
+
+        <img
+
+        className="feedMedia"
+
+        src={post.mediaURL}
+
+        alt="post"
+
+        />
+
+        }
+
+
+
+
+
+        {
+
+        post.mediaType==="video"
+
+        &&
+
+        <video
+
+        className="feedMedia"
+
+        src={post.mediaURL}
+
+        controls
+
+        />
+
+        }
+
+
+
+
+        </div>
+
+
+      ))
+
+      }
+
+
+
+      </div>
+
+
+
+
+
+      <ConfirmModal
+        isOpen={Boolean(selectedPost)}
+        title="Delete Post"
+        message="Are you sure you want to delete this post?"
+        confirmText="Delete"
+        onClose={() => setSelectedPost(null)}
+        onConfirm={deletePost}
+        type="confirm"
+      />
+
+
+
+
+
+    </div>
+
+
+  );
+
 }
-
-style={styles.textarea}
-
-/>
-
-
-<MediaUpload
-
-onUpload={
-file=>setMedia(file)
-}
-
-/>
-
-
-<button style={styles.button}>
-Post
-</button>
-
-
-</form>
-
-
-</div>
-
-
-
-
-
-{
-posts.map(post=>(
-
-
-<div
-key={post.id}
-style={styles.card}
->
-
-
-<h4>
-👤 {post.username}
-</h4>
-
-
-<p>
-{post.text}
-</p>
-
-
-
-{
-post.media &&
-
-post.media.type?.startsWith("image")
-
-?
-
-<img
-src={post.media.url}
-style={styles.media}
-/>
-
-:
-
-post.media &&
-
-<video
-src={post.media.url}
-controls
-style={styles.media}
-/>
-
-}
-
-
-
-<div style={styles.actions}>
-
-
-<button
-onClick={()=>likePost(post)}
->
-
-❤️ {post.likes?.length || 0}
-
-</button>
-
-
-<button
-onClick={()=>sharePost(post)}
->
-
-↗ Share
-
-</button>
-
-
-</div>
-
-
-
-<input
-
-placeholder="Write comment..."
-
-value={
-commentText[post.id] || ""
-}
-
-onChange={
-e=>
-setCommentText({
-
-...commentText,
-
-[post.id]:
-e.target.value
-
-})
-}
-
-style={styles.input}
-
-/>
-
-
-<button
-
-onClick={()=>
-addComment(post.id)
-}
-
->
-
-Comment
-
-</button>
-
-
-
-</div>
-
-
-))
-
-}
-
-
-</div>
-
-
-</div>
-
-);
-
-}
-
-
-
-const styles={
-
-page:{
-minHeight:"100vh",
-background:"#0B1120",
-color:"white",
-paddingBottom:"90px"
-},
-
-container:{
-padding:"15px"
-},
-
-card:{
-background:"#111827",
-padding:"20px",
-borderRadius:"15px",
-marginBottom:"15px"
-},
-
-textarea:{
-width:"100%",
-height:"100px",
-background:"#1F2937",
-color:"white",
-borderRadius:"10px",
-padding:"10px"
-},
-
-input:{
-width:"100%",
-padding:"10px",
-marginTop:"10px",
-background:"#1F2937",
-color:"white"
-},
-
-button:{
-marginTop:"10px",
-padding:"10px 20px",
-borderRadius:"8px"
-},
-
-media:{
-width:"100%",
-borderRadius:"10px",
-marginTop:"15px"
-},
-
-actions:{
-display:"flex",
-gap:"15px",
-marginTop:"15px"
-}
-
-};

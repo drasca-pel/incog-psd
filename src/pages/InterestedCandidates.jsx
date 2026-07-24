@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import ConfirmModal from "../components/ConfirmModal";
 import {
   doc,
   getDoc,
@@ -26,6 +26,7 @@ export default function InterestedCandidates() {
 
   const [broadcast, setBroadcast] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [confirmModal, setConfirmModal] = useState(null);
 
   // helperId -> chatId
   const [existingChats, setExistingChats] = useState({});
@@ -161,27 +162,21 @@ export default function InterestedCandidates() {
 
   async function removeCandidate(person) {
 
-    const confirmRemove = window.confirm(
-      `Remove ${person.name} from this project?`
-    );
+ setConfirmModal({
+  title: "Remove Candidate?",
+  message: `Remove ${person.name} from this project?`,
+  confirmText: "Remove",
 
-    if (!confirmRemove) return;
-
+  action: async () => {
 
     try {
-
-      // 1. Remove candidate from broadcast
 
       await updateDoc(
         doc(db, "broadcasts", broadcast.id),
         {
-          interestedCandidates:
-            arrayRemove(person),
+          interestedCandidates: arrayRemove(person),
         }
       );
-
-
-      // 2. Delete their alert
 
       const alertQuery = query(
         collection(db, "alerts"),
@@ -189,20 +184,11 @@ export default function InterestedCandidates() {
         where("receiverId", "==", person.uid)
       );
 
-
       const alertSnap = await getDocs(alertQuery);
 
-
       for (const alert of alertSnap.docs) {
-
-        await deleteDoc(
-          doc(db, "alerts", alert.id)
-        );
-
+        await deleteDoc(doc(db, "alerts", alert.id));
       }
-
-
-      // 3. Delete chat if it exists
 
       const chatQuery = query(
         collection(db, "chats"),
@@ -210,51 +196,37 @@ export default function InterestedCandidates() {
         where("helperId", "==", person.uid)
       );
 
-
       const chatSnap = await getDocs(chatQuery);
 
-
       for (const chat of chatSnap.docs) {
-
-        await deleteDoc(
-          doc(db, "chats", chat.id)
-        );
-
+        await deleteDoc(doc(db, "chats", chat.id));
       }
 
-
-      // 4. Update screen immediately
-
       setBroadcast((prev) => ({
-
         ...prev,
-
         interestedCandidates:
           prev.interestedCandidates.filter(
-            (candidate) =>
-              candidate.uid !== person.uid
+            (candidate) => candidate.uid !== person.uid
           ),
-
       }));
 
-
       setExistingChats((prev) => {
-
         const updated = { ...prev };
-
         delete updated[person.uid];
-
         return updated;
-
       });
 
+      setConfirmModal(null);
 
     } catch (error) {
-
       console.error(error);
       alert("Unable to remove candidate.");
-
     }
+
+  },
+});
+
+return;
 
   } 
 
@@ -327,7 +299,15 @@ export default function InterestedCandidates() {
         ))
 
       )}
-
+       {confirmModal && (
+  <ConfirmModal
+    title={confirmModal.title}
+    message={confirmModal.message}
+    confirmText={confirmModal.confirmText}
+    onConfirm={confirmModal.action}
+    onCancel={() => setConfirmModal(null)}
+  />
+)}
     </div>
   );
 }

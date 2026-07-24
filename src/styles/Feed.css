@@ -1,0 +1,336 @@
+.feedPage {
+
+  min-height: 100vh;
+  background: #050505;
+  color: white;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+
+}
+
+
+
+.feedHeader {
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  position: sticky;
+  top: 0;
+
+  background: #050505;
+
+  padding: 12px 0;
+
+  z-index: 20;
+
+}
+
+
+
+.feedHeader button {
+
+  background: #1677ff;
+
+  color: white;
+
+  border: none;
+
+  padding: 10px 16px;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+}
+
+
+
+.backButton {
+
+  background: transparent !important;
+
+  font-size: 25px;
+
+}
+
+
+
+.feedContainer {
+
+  max-width: 600px;
+
+  margin: auto;
+
+}
+
+
+
+.feedCard {
+
+  background: #111;
+
+  border: 1px solid #222;
+
+  border-radius: 18px;
+
+  padding: 18px;
+
+  margin-bottom: 20px;
+
+}
+
+
+
+.feedUser {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 15px;
+
+}
+
+
+
+.feedUser img,
+.feedAvatar {
+
+  width: 45px;
+
+  height: 45px;
+
+  border-radius: 50%;
+
+}
+
+
+
+.feedUser img {
+
+  object-fit: cover;
+
+}
+
+
+
+.feedAvatar {
+
+  background: #1677ff;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  font-weight: bold;
+
+  font-size: 20px;
+
+}
+
+
+
+.clickProfile {
+
+  cursor: pointer;
+
+}
+
+
+
+.feedCard p {
+
+  color: #ddd;
+
+  line-height: 1.6;
+
+}
+
+
+
+.feedMedia {
+
+  width: 100%;
+
+  border-radius: 15px;
+
+  margin-top: 15px;
+
+  max-height: 600px;
+
+  object-fit: cover;
+
+}
+
+
+
+.feedCard button {
+
+  margin-top: 10px;
+
+  background: transparent;
+
+  color: #1677ff;
+
+  border: none;
+
+  cursor: pointer;
+
+}
+
+
+
+
+
+
+
+/* DELETE POPUP */
+
+.deleteBox {
+
+
+  position: fixed;
+
+
+  left: 50%;
+
+
+  top: 50%;
+
+
+  transform: translate(-50%, -50%);
+
+
+
+  background: #151515;
+
+
+  border: 1px solid #333;
+
+
+  border-radius: 18px;
+
+
+  padding: 20px;
+
+
+  width: 260px;
+
+
+  display: flex;
+
+
+  flex-direction: column;
+
+
+  gap: 12px;
+
+
+
+  z-index: 999;
+
+
+
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+
+
+}
+
+
+
+
+
+.deleteBox button {
+
+
+  padding: 12px;
+
+
+  border-radius: 10px;
+
+
+  border: none;
+
+
+  cursor: pointer;
+
+
+  background: #1677ff;
+
+
+  color: white;
+
+
+  font-size: 15px;
+
+
+
+}
+
+
+
+
+
+.deleteBox button:last-child {
+
+
+  background: #333;
+
+
+}
+
+
+
+
+
+
+
+.refreshButton {
+
+
+  display: block;
+
+
+  margin: 15px auto;
+
+
+  background: #111;
+
+
+  border: 1px solid #333;
+
+
+  color: white;
+
+
+  padding: 10px 18px;
+
+
+  border-radius: 20px;
+
+
+}
+
+
+
+
+
+.loading {
+
+
+  text-align: center;
+
+
+  color: #aaa;
+
+
+  padding: 20px;
+
+
+}

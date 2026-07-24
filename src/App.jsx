@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import SkillSelection from "./pages/SkillSelection";
 import Dashboard from "./pages/Dashboard";
 import Feed from "./pages/Feed";
+import CreatePost from "./pages/CreatePost";
 import Broadcast from "./pages/Broadcast";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -80,6 +81,21 @@ export default function App() {
         <Route path="/community" element={<Community />} />
         <Route path="/broadcast/:id" element={<PrivateRoute><BroadcastDetails /></PrivateRoute>} />
         <Route path="/my-broadcasts" element={<PrivateRoute><MyBroadcasts /></PrivateRoute>} />
+        <Route
+ path="/feed"
+ element={<Feed />}
+/>
+
+<Route
+  path="/profile/:uid"
+  element={<Profile />}
+/>
+
+
+<Route
+ path="/create-post"
+ element={<CreatePost />}
+/>
       <Route
   path="/edit-broadcast/:id"
   element={

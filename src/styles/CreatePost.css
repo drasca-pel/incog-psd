@@ -1,0 +1,161 @@
+.createPostPage {
+
+  min-height: 100vh;
+
+  background: #050505;
+
+  color: white;
+
+  padding: 20px;
+
+  font-family: Arial, sans-serif;
+
+}
+
+
+
+.createPostPage h1 {
+
+  text-align: center;
+
+  font-size: 26px;
+
+  margin-bottom: 25px;
+
+}
+
+
+
+.backButton {
+
+  background: transparent;
+
+  color: white;
+
+  border: none;
+
+  font-size: 28px;
+
+  cursor: pointer;
+
+}
+
+
+
+.createPostBox {
+
+  max-width: 600px;
+
+  margin: auto;
+
+  background: #111;
+
+  border: 1px solid #222;
+
+  border-radius: 18px;
+
+  padding: 20px;
+
+}
+
+
+
+.createPostBox textarea {
+
+  width: 100%;
+
+  min-height: 150px;
+
+  resize: none;
+
+  background: #050505;
+
+  color: white;
+
+  border: 1px solid #333;
+
+  border-radius: 12px;
+
+  padding: 15px;
+
+  font-size: 16px;
+
+  outline: none;
+
+}
+
+
+
+.createPostBox textarea::placeholder {
+
+  color: #777;
+
+}
+
+
+
+.createPostBox input[type="file"] {
+
+  margin-top: 20px;
+
+  color: #aaa;
+
+  width: 100%;
+
+}
+
+
+
+.createPostBox p {
+
+  color: #aaa;
+
+  margin-top: 15px;
+
+}
+
+
+
+.createPostBox button {
+
+  width: 100%;
+
+  margin-top: 20px;
+
+  padding: 14px;
+
+  background: #1677ff;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 12px;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+
+}
+
+
+
+.createPostBox button:hover {
+
+  background: #0f5fd0;
+
+}
+
+
+
+.createPostBox button:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+}

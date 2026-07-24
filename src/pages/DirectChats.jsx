@@ -14,6 +14,8 @@ export default function DirectChats() {
 
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
 

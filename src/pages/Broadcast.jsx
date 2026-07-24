@@ -165,7 +165,7 @@ for (const userDoc of usersSnapshot.docs) {
   });
 
 }
-  alert("Broadcast created successfully.");
+
 
       setTitle("");
       setDescription("");

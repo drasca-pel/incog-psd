@@ -1,39 +1,54 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, where, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, where, query, orderBy, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/firebase";
+import ConfirmModal from "../components/ConfirmModal";
 import "../styles/Dashboard.css";
-
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [broadcasts, setBroadcasts] = useState([]);
+  const [userData, setUserData] = useState(null);
 
-useEffect(() => {
-  const loadBroadcasts = async () => {
-    try {
-      
-      const q = query(
-  collection(db, "broadcasts"),
-  where("creatorId", "==", auth.currentUser.uid),
-  orderBy("createdAt", "desc")
-);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState("info");
 
-      const snapshot = await getDocs(q);
+  useEffect(() => {
+    const loadBroadcasts = async () => {
+      try {
+        const q = query(
+          collection(db, "broadcasts"),
+          where("creatorId", "==", auth.currentUser.uid),
+          orderBy("createdAt", "desc")
+        );
 
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+        const snapshot = await getDocs(q);
 
-      setBroadcasts(data);
-    } catch (err) {
-      console.error("Error loading broadcasts:", err);
-    }
-  };
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-  loadBroadcasts();
-}, []);
+        setBroadcasts(data);
+      } catch (err) {
+        console.error("Error loading broadcasts:", err);
+      }
+    };
+
+    const loadUser = async () => {
+      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+
+      if (snap.exists()) {
+        setUserData(snap.data());
+      }
+    };
+
+    loadBroadcasts();
+    loadUser();
+  }, []);
+
   return (
     <div className="dashboard">
 
@@ -60,7 +75,15 @@ useEffect(() => {
           </button>
 
           {/* Notifications */}
-          <button className="iconButton notificationButton">
+          <button
+            className="iconButton notificationButton"
+            onClick={() => {
+              setModalTitle("Notifications");
+              setModalMessage("Notification settings are coming soon.");
+              setModalType("info");
+              setModalOpen(true);
+            }}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 01-3.46 0"/>
@@ -70,8 +93,25 @@ useEffect(() => {
           </button>
 
           {/* Profile */}
-          <div className="profileAvatar">
-            A
+          <div
+            className="profileAvatar"
+            onClick={() => navigate(`/profile/${auth.currentUser.uid}`)}
+            style={{ cursor: "pointer", overflow: "hidden" }}
+          >
+            {userData?.photoURL ? (
+              <img
+                src={userData.photoURL}
+                alt="Profile"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                }}
+              />
+            ) : (
+              auth.currentUser?.displayName?.charAt(0).toUpperCase() || "A"
+            )}
           </div>
 
         </div>
@@ -85,158 +125,175 @@ useEffect(() => {
           <span className="welcomeLabel">
             Welcome Back
           </span>
-<h1>
-  {auth.currentUser?.displayName || "INCOG User"}
-</h1>
+            
+          <h1>
+            {auth.currentUser?.displayName || "INCOG User"}
+          </h1>
 
           <p>
             Solve engineering problems, collaborate with professionals,
             and grow your technical portfolio with INCOG PSD.
           </p>
 
-        <button
-  className="primaryButton"
-  onClick={() => navigate("/community")}
->
-  Explore Community
-</button>
+          <button
+            className="primaryButton"
+            onClick={() => navigate("/logs")}
+          >
+            Logs
+          </button>
 
-       </section>
+        </section>
 
-{/* ================= RECENT BROADCASTS ================= */}
+        {/* ================= RECENT BROADCASTS ================= */}
 
-<section className="broadcastSection">
+        <section className="broadcastSection">
 
-  <div className="sectionHeader">
+          <div className="sectionHeader">
 
-    <h2>My Recent Broadcasts</h2>
+            <h2>My Recent Broadcasts</h2>
 
-    <button
-  className="viewButton"
-  onClick={() => navigate("/my-broadcasts")}
->
-  See All
-</button>
+            <button
+              className="viewButton"
+              onClick={() => navigate("/my-broadcasts")}
+            >
+              See All
+            </button>
 
-  </div>
+          </div>
 
-  <div className="broadcastList">
+          <div className="broadcastList">
 
-    {broadcasts.length === 0 ? (
+            {broadcasts.length === 0 ? (
 
-      <div className="emptyState">
-        No broadcasts available.
-      </div>
+              <div className="emptyState">
+                No broadcasts available.
+              </div>
 
-    ) : (
+            ) : (
 
-      broadcasts.slice(0,2).map((broadcast) => (
+              broadcasts.slice(0, 2).map((broadcast) => (
 
-        <div
-          className="broadcastCard"
-          key={broadcast.id}
-        >
+                <div
+                  className="broadcastCard"
+                  key={broadcast.id}
+                >
 
-          <div className="broadcastHeader">
+                  <div className="broadcastHeader">
 
-            <div className="broadcastAvatar">
-              {(broadcast.creatorName || "U")
-                .charAt(0)
-                .toUpperCase()}
+                    <div className="broadcastAvatar">
+                      {(broadcast.creatorName || "U")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+
+                    <div className="broadcastInfo">
+
+                      <h3>
+                        {broadcast.title}
+                      </h3>
+
+                      <span>
+                        {broadcast.targetSkills?.join(", ") || "General"}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  <p className="broadcastDescription">
+                    {broadcast.description}
+                  </p>
+
+                </div>
+
+              ))
+
+            )}
+
+          </div>
+
+        </section>
+
+        {/* ================= RECENT CHATS ================= */}
+
+        <section className="chatSection">
+
+          <div className="sectionHeader">
+
+            <h2>Recent Chats</h2>
+
+            <button
+              className="seeAllButton"
+              onClick={() => navigate("/chat")}
+            >
+              Open Chat
+            </button>
+
+          </div>
+
+          <div className="chatCard">
+
+            <div className="chatAvatar">
+              C
             </div>
 
-            <div className="broadcastInfo">
+            <div className="chatDetails">
 
               <h3>
-                {broadcast.title}
+                Continue Your Conversations
               </h3>
 
-              <span>
-                {broadcast.targetSkills?.join(", ") || "General"}
-              </span>
+              <p>
+                Your latest chats will appear here once you begin collaborating.
+              </p>
 
             </div>
 
           </div>
 
-          <p className="broadcastDescription">
-            {broadcast.description}
-          </p>
+        </section>
 
-          
+        {/* ================= ACTIVE PROJECTS ================= */}
 
-        </div>
+        <section className="projectSection">
 
-      ))
+          <div className="sectionHeader">
 
-    )}
+            <h2>Active Projects</h2>
 
-  </div>
+            <button
+              className="seeAllButton"
+              onClick={() => navigate("/portfolio")}
+            >
+              Portfolio
+            </button>
 
-</section>
-{/* ================= RECENT CHATS ================= */}
+          </div>
 
-<section className="chatSection">
+          <div className="projectCard">
 
-  <div className="sectionHeader">
+            <h3>
+              No Active Projects
+            </h3>
 
-    <h2>Recent Chats</h2>
+            <p>
+              Projects you accept and complete will appear here and can later be added to your portfolio.
+            </p>
 
-    <button className="seeAllButton">
-      Open Chat
-    </button>
+          </div>
 
-  </div>
+        </section>
 
-  <div className="chatCard">
+      </main>
 
-    <div className="chatAvatar">
-      C
-    </div>
+      <ConfirmModal
+        isOpen={modalOpen}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setModalOpen(false)}
+        onConfirm={() => setModalOpen(false)}
+      />
 
-    <div className="chatDetails">
-
-      <h3>
-        No active conversations
-      </h3>
-
-      <p>
-        Accepted broadcasts will appear here.
-      </p>
-
-    </div>
-
-  </div>
-
-</section>
-{/* ================= ACTIVE PROJECTS ================= */}
-
-<section className="projectSection">
-
-  <div className="sectionHeader">
-
-    <h2>Active Projects</h2>
-
-    <button className="seeAllButton">
-      Portfolio
-    </button>
-
-  </div>
-
-  <div className="projectCard">
-
-    <h3>
-      No Active Projects
-    </h3>
-
-    <p>
-      Projects you accept and complete will appear here and can later be added to your portfolio.
-    </p>
-
-  </div>
-
-</section>
-</main>
     </div>
   );
 }
