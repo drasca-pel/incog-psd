@@ -71,7 +71,7 @@ export default function Register() {
         createdAt: new Date(),
       });
 
-      navigate("/skillselection");
+      navigate("/skillSelection");
 
     } catch (err) {
       setError(err.message);
