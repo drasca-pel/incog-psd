@@ -116,7 +116,7 @@ export default function App() {
 
         {/* Setup */}
         <Route
-          path="/skillselection"
+          path="/skillSelection"
           element={
             <PrivateRoute>
               <SkillSelection />
