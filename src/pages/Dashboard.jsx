@@ -18,6 +18,8 @@ export default function Dashboard() {
   useEffect(() => {
     const loadBroadcasts = async () => {
       try {
+        if (!auth.currentUser) return;
+        
         const q = query(
           collection(db, "broadcasts"),
           where("creatorId", "==", auth.currentUser.uid),
@@ -38,10 +40,15 @@ export default function Dashboard() {
     };
 
     const loadUser = async () => {
-      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+      try {
+        if (!auth.currentUser) return;
+        const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
 
-      if (snap.exists()) {
-        setUserData(snap.data());
+        if (snap.exists()) {
+          setUserData(snap.data());
+        }
+      } catch (err) {
+        console.error("Error loading user profile:", err);
       }
     };
 
@@ -95,7 +102,7 @@ export default function Dashboard() {
           {/* Profile */}
           <div
             className="profileAvatar"
-            onClick={() => navigate(`/profile/${auth.currentUser.uid}`)}
+            onClick={() => navigate(`/profile/${auth.currentUser?.uid}`)}
             style={{ cursor: "pointer", overflow: "hidden" }}
           >
             {userData?.photoURL ? (
@@ -139,7 +146,7 @@ export default function Dashboard() {
             className="primaryButton"
             onClick={() => navigate("/logs")}
           >
-            Logs
+            My Logs
           </button>
 
         </section>
@@ -231,55 +238,8 @@ export default function Dashboard() {
 
           </div>
 
-          <div className="chatCard">
-
-            <div className="chatAvatar">
-              C
-            </div>
-
-            <div className="chatDetails">
-
-              <h3>
-                Continue Your Conversations
-              </h3>
-
-              <p>
-                Your latest chats will appear here once you begin collaborating.
-              </p>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* ================= ACTIVE PROJECTS ================= */}
-
-        <section className="projectSection">
-
-          <div className="sectionHeader">
-
-            <h2>Active Projects</h2>
-
-            <button
-              className="seeAllButton"
-              onClick={() => navigate("/portfolio")}
-            >
-              Portfolio
-            </button>
-
-          </div>
-
-          <div className="projectCard">
-
-            <h3>
-              No Active Projects
-            </h3>
-
-            <p>
-              Projects you accept and complete will appear here and can later be added to your portfolio.
-            </p>
-
+          <div className="emptyState">
+            No recent chats.
           </div>
 
         </section>

@@ -12,7 +12,6 @@ import {
   serverTimestamp,
   doc,
   getDoc,
-  getFirestore,
 } from "firebase/firestore";
 
 import MediaUpload from "../components/MediaUpload";
@@ -56,7 +55,7 @@ export default function Broadcast() {
     loadUserSkills();
   }, []);
     
-   
+    
 
   async function createBroadcast(e) {
     e.preventDefault();
@@ -79,92 +78,106 @@ export default function Broadcast() {
 
       if (existing.size >= 6) {
         alert(
-          "You already have 2 active broadcasts. Complete one before creating another."
+          "You already have active broadcasts. Complete one before creating another."
         );
 
         setLoading(false);
         return;
-      } let uploadedMedia = null;
+      } 
+      
+      let uploadedMedia = null;
 
-if (media) {
-  uploadedMedia = await uploadToCloudinary(
-    media.file
-  );
-}
-         
+      if (media) {
+        uploadedMedia = await uploadToCloudinary(
+          media.file
+        );
+      }
+           
      
-  const broadcastRef = await addDoc(
-  collection(db, "broadcasts"),
-  {
-    creatorId: auth.currentUser.uid,
-    creatorName:
-      auth.currentUser.displayName || "INCOG User",
+      const broadcastRef = await addDoc(
+        collection(db, "broadcasts"),
+        {
+          creatorId: auth.currentUser.uid,
+          creatorName:
+            auth.currentUser.displayName || "INCOG User",
 
-    title,
-    description,
+          title,
+          description,
 
-    targetSkills: [skill],
+          targetSkills: [skill],
 
-    media: uploadedMedia,
+          media: uploadedMedia,
 
-    status: "active",
+          status: "active",
 
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    
-accepted: false,
-acceptedBy: null,
-interestedCandidate: [],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          
+          accepted: false,
+          acceptedBy: null,
+          interestedCandidate: [],
 
-expiresIn: 7,
+          expiresIn: 7,
 
-expiresAt: new Date(
-  Date.now() + 7 * 24 * 60 * 60 * 1000
-).getTime(),
+          expiresAt: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ).getTime(),
 
-editExpiresAt: new Date(
-  Date.now() + 60 * 60 * 1000
-).getTime(),
+          editExpiresAt: new Date(
+            Date.now() + 60 * 60 * 1000
+          ).getTime(),
 
-lastReminderAt: serverTimestamp(),
+          lastReminderAt: serverTimestamp(),
 
-    reminderCount: 0,
-  }
-);
+          reminderCount: 0,
+        }
+      );
 
-const usersQuery = query(
-  collection(db, "users"),
-  where("skills", "array-contains", skill)
-);
+      // AUTOMATICALLY CREATE CORRESPONDING WORKSPACE FOR THIS BROADCAST
+      await addDoc(collection(db, "workspaces"), {
+        broadcastId: broadcastRef.id,
+        creatorId: auth.currentUser.uid,
+        creatorName: auth.currentUser.displayName || "INCOG User",
+        title: title,
+        group: skill,
+        participants: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
 
-const usersSnapshot = await getDocs(usersQuery);
+      const usersQuery = query(
+        collection(db, "users"),
+        where("skills", "array-contains", skill)
+      );
 
-for (const userDoc of usersSnapshot.docs) {
+      const usersSnapshot = await getDocs(usersQuery);
 
-  if (userDoc.id === auth.currentUser.uid) continue;
+      for (const userDoc of usersSnapshot.docs) {
 
-  await addDoc(collection(db, "alerts"), {
+        if (userDoc.id === auth.currentUser.uid) continue;
 
-    receiverId: userDoc.id,
+        await addDoc(collection(db, "alerts"), {
 
-    creatorId: auth.currentUser.uid,
+          receiverId: userDoc.id,
 
-    creatorName:
-      auth.currentUser.displayName || "INCOG User",
+          creatorId: auth.currentUser.uid,
 
-    broadcastId: broadcastRef.id,
+          creatorName:
+            auth.currentUser.displayName || "INCOG User",
 
-    title: title,
+          broadcastId: broadcastRef.id,
 
-    group: skill,
+          title: title,
 
-    status: "unread",
+          group: skill,
 
-    createdAt: serverTimestamp(),
+          status: "unread",
 
-  });
+          createdAt: serverTimestamp(),
 
-}
+        });
+
+      }
 
 
       setTitle("");
@@ -184,11 +197,11 @@ for (const userDoc of usersSnapshot.docs) {
       <div className="broadcastContainer">
         <div className="broadcastCard">
           <button
-  className="backButton"
-  onClick={() => navigate(-1)}
->
-  ←
-</button>
+            className="backButton"
+            onClick={() => navigate(-1)}
+          >
+            ←
+          </button>
           <h1>Create Broadcast</h1>
 
           <p className="broadcastSubtitle">
@@ -253,20 +266,20 @@ for (const userDoc of usersSnapshot.docs) {
             />
 
            <button
-  className="broadcastButton"
-  disabled={loading}
-  type="submit"
->
-  {loading ? "Publishing..." : "Publish Broadcast"}
-</button>
+              className="broadcastButton"
+              disabled={loading}
+              type="submit"
+            >
+              {loading ? "Publishing..." : "Publish Broadcast"}
+            </button>
 
-<button
-  className="createVocalsButton"
-  disabled={loading}
-  type="submit"
->
-  {loading ? "Creating..." : "Create New Vocals"}
-</button>
+            <button
+              className="createVocalsButton"
+              disabled={loading}
+              type="submit"
+            >
+              {loading ? "Creating..." : "Create New Vocals"}
+            </button>
           </form>
         </div>
       </div>

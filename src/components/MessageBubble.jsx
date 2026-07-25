@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "../styles/MessageBubble.css";
 
 export default function MessageBubble({
 
@@ -80,29 +81,26 @@ export default function MessageBubble({
             <img
               src={message.mediaURL}
               alt="media"
+              className="messageImage"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsFullscreen(true);
               }}
-              style={{ maxWidth: "200px", borderRadius: "8px", display: "block", margin: "5px 0", cursor: "pointer" }}
             />
             {message.text && <p>{message.text}</p>}
           </div>
 
         ) : message.mediaType === "video" ? (
 
-          <div 
-            className="messageMedia"
-            style={{ display: "inline-block" }}
-          >
+          <div className="messageMedia messageMediaInline">
             <video
               src={message.mediaURL}
               controls
+              className="messageVideo"
               onClick={(e) => {
                 e.stopPropagation();
                 setVideoFullscreen(true);
               }}
-              style={{ maxWidth: "220px", borderRadius: "8px", display: "block", margin: "5px 0", cursor: "pointer" }}
             />
             {message.text && <p>{message.text}</p>}
           </div>
@@ -148,103 +146,30 @@ export default function MessageBubble({
       </div>
 
       {isFullscreen && (
-        <div
-          onClick={() => setIsFullscreen(false)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.9)",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <button
-            onClick={() => setIsFullscreen(false)}
-            style={{
-              position: "absolute",
-              top: "20px",
-              left: "20px",
-              background: "rgba(255, 255, 255, 0.2)",
-              color: "white",
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: "8px",
-              fontSize: "16px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px"
-            }}
-          >
+        <div className="fullscreenOverlay" onClick={() => setIsFullscreen(false)}>
+          <button className="fullscreenBackBtn" onClick={() => setIsFullscreen(false)}>
             ← Back
           </button>
           <img
             src={message.mediaURL}
             alt="fullscreen preview"
+            className="fullscreenImage"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: "90%",
-              maxHeight: "85%",
-              objectFit: "contain",
-              borderRadius: "8px"
-            }}
           />
         </div>
       )}
 
       {videoFullscreen && (
-        <div
-          onClick={() => setVideoFullscreen(false)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.9)",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <button
-            onClick={() => setVideoFullscreen(false)}
-            style={{
-              position: "absolute",
-              top: "20px",
-              left: "20px",
-              background: "rgba(255, 255, 255, 0.2)",
-              color: "white",
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: "8px",
-              fontSize: "16px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px"
-            }}
-          >
+        <div className="fullscreenOverlay" onClick={() => setVideoFullscreen(false)}>
+          <button className="fullscreenBackBtn" onClick={() => setVideoFullscreen(false)}>
             ← Back
           </button>
           <video
             src={message.mediaURL}
             controls
             autoPlay
+            className="fullscreenVideo"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: "95%",
-              maxHeight: "90%",
-              borderRadius: "8px"
-            }}
           />
         </div>
       )}

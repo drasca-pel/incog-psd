@@ -1,0 +1,126 @@
+/* ===============================
+   GROUPS TAB & LISTING DARK THEME
+================================ */
+
+.groupsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.groupsLoadingText {
+  color: #8b8f98;
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.groupsEmptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: #8b8f98;
+}
+
+.groupsEmptyState h3 {
+  color: #e5e5e5;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.groupsEmptyState p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #8b8f98;
+}
+
+/* Group Card */
+.groupCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px;
+  background: #15171a;
+  border-radius: 14px;
+  cursor: pointer;
+  border: 1px solid #24262b;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.groupCard:hover {
+  background: #1b1d21;
+  border-color: #303238;
+}
+
+/* Group Avatar */
+.groupAvatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #1b1d21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 18px;
+  color: #fff;
+  position: relative;
+  border: 1px solid #303238;
+  flex-shrink: 0;
+}
+
+/* Notification Badge on Icon */
+.groupUnreadBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background: #ff4d4d;
+  border-radius: 50%;
+  border: 2px solid #15171a;
+}
+
+/* Group Info Section */
+.groupInfo {
+  flex: 1;
+  overflow: hidden;
+}
+
+.groupInfo h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e5e5e5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.groupInfo p {
+  margin: 0;
+  font-size: 13px;
+  color: #8b8f98;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Options / Delete Trigger Button */
+.groupOptionsButton {
+  background: transparent;
+  border: none;
+  color: #8b8f98;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.groupOptionsButton:hover {
+  background: #24272c;
+  color: #fff;
+}

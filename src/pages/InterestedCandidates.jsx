@@ -11,6 +11,7 @@ import {
   updateDoc,
   deleteDoc,
   arrayRemove,
+  arrayUnion,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -42,32 +43,24 @@ export default function InterestedCandidates() {
   }
 
   async function loadBroadcast() {
-
     try {
-
       const snap = await getDoc(
         doc(db, "broadcasts", id)
       );
 
       if (snap.exists()) {
-
         setBroadcast({
           id: snap.id,
           ...snap.data(),
         });
-
       }
-
     } catch (error) {
       console.error(error);
     }
-
   } 
 
   async function loadChats() {
-
     try {
-
       const q = query(
         collection(db, "chats"),
         where("projectId", "==", id)
@@ -78,19 +71,14 @@ export default function InterestedCandidates() {
       const chatMap = {};
 
       snap.forEach((chat) => {
-
         const data = chat.data();
-
         chatMap[data.helperId] = chat.id;
-
       });
 
       setExistingChats(chatMap);
-
     } catch (error) {
       console.error(error);
     }
-
   }
 
   if (loading) {
@@ -98,24 +86,70 @@ export default function InterestedCandidates() {
   } 
 
   async function createChat(person) {
-
     try {
-
       // Chat already exists
       if (existingChats[person.uid]) {
-
         navigate(`/chat/${existingChats[person.uid]}`);
         return;
+      }
 
+      // ------------------------
+      // Find or Create Workspace
+      // ------------------------
+
+      let workspaceId = null;
+
+      const workspaceQuery = query(
+        collection(db, "workspaces"),
+        where("broadcastId", "==", broadcast.id)
+      );
+
+      const workspaceSnapshot = await getDocs(workspaceQuery);
+
+      if (workspaceSnapshot.empty) {
+        const workspaceRef = await addDoc(
+          collection(db, "workspaces"),
+          {
+            broadcastId: broadcast.id,
+            title: broadcast.title,
+            creatorId: auth.currentUser.uid,
+            creatorName: auth.currentUser.displayName,
+            participants: [
+              {
+                uid: person.uid,
+                name: person.name,
+                photoURL: person.photoURL || "",
+              },
+            ],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          }
+        );
+
+        workspaceId = workspaceRef.id;
+      } else {
+        const workspace = workspaceSnapshot.docs[0];
+        workspaceId = workspace.id;
+
+        await updateDoc(
+          doc(db, "workspaces", workspaceId),
+          {
+            participants: arrayUnion({
+              uid: person.uid,
+              name: person.name,
+              photoURL: person.photoURL || "",
+            }),
+            updatedAt: serverTimestamp(),
+          }
+        );
       }
 
       // Create new chat
-
       const chatRef = await addDoc(
         collection(db, "chats"),
         {
-
           projectId: broadcast.id,
+          workspaceId: workspaceId,
           projectTitle: broadcast.title,
           projectSkill:
             broadcast.targetSkills?.[0] || "",
@@ -138,96 +172,82 @@ export default function InterestedCandidates() {
 
           lastMessage: "",
           lastMessageAt: serverTimestamp(),
-
         }
       );
 
       // Save locally
-
       setExistingChats((prev) => ({
         ...prev,
         [person.uid]: chatRef.id,
       }));
 
       navigate(`/chat/${chatRef.id}`);
-
     } catch (error) {
-
       console.error(error);
       alert("Unable to create chat.");
-
     }
-
   } 
 
   async function removeCandidate(person) {
+    setConfirmModal({
+      title: "Remove Candidate?",
+      message: `Remove ${person.name} from this project?`,
+      confirmText: "Remove",
 
- setConfirmModal({
-  title: "Remove Candidate?",
-  message: `Remove ${person.name} from this project?`,
-  confirmText: "Remove",
+      action: async () => {
+        try {
+          await updateDoc(
+            doc(db, "broadcasts", broadcast.id),
+            {
+              interestedCandidates: arrayRemove(person),
+            }
+          );
 
-  action: async () => {
+          const alertQuery = query(
+            collection(db, "alerts"),
+            where("broadcastId", "==", broadcast.id),
+            where("receiverId", "==", person.uid)
+          );
 
-    try {
+          const alertSnap = await getDocs(alertQuery);
 
-      await updateDoc(
-        doc(db, "broadcasts", broadcast.id),
-        {
-          interestedCandidates: arrayRemove(person),
+          for (const alert of alertSnap.docs) {
+            await deleteDoc(doc(db, "alerts", alert.id));
+          }
+
+          const chatQuery = query(
+            collection(db, "chats"),
+            where("projectId", "==", broadcast.id),
+            where("helperId", "==", person.uid)
+          );
+
+          const chatSnap = await getDocs(chatQuery);
+
+          for (const chat of chatSnap.docs) {
+            await deleteDoc(doc(db, "chats", chat.id));
+          }
+
+          setBroadcast((prev) => ({
+            ...prev,
+            interestedCandidates:
+              prev.interestedCandidates.filter(
+                (candidate) => candidate.uid !== person.uid
+              ),
+          }));
+
+          setExistingChats((prev) => {
+            const updated = { ...prev };
+            delete updated[person.uid];
+            return updated;
+          });
+
+          setConfirmModal(null);
+        } catch (error) {
+          console.error(error);
+          alert("Unable to remove candidate.");
         }
-      );
-
-      const alertQuery = query(
-        collection(db, "alerts"),
-        where("broadcastId", "==", broadcast.id),
-        where("receiverId", "==", person.uid)
-      );
-
-      const alertSnap = await getDocs(alertQuery);
-
-      for (const alert of alertSnap.docs) {
-        await deleteDoc(doc(db, "alerts", alert.id));
-      }
-
-      const chatQuery = query(
-        collection(db, "chats"),
-        where("projectId", "==", broadcast.id),
-        where("helperId", "==", person.uid)
-      );
-
-      const chatSnap = await getDocs(chatQuery);
-
-      for (const chat of chatSnap.docs) {
-        await deleteDoc(doc(db, "chats", chat.id));
-      }
-
-      setBroadcast((prev) => ({
-        ...prev,
-        interestedCandidates:
-          prev.interestedCandidates.filter(
-            (candidate) => candidate.uid !== person.uid
-          ),
-      }));
-
-      setExistingChats((prev) => {
-        const updated = { ...prev };
-        delete updated[person.uid];
-        return updated;
-      });
-
-      setConfirmModal(null);
-
-    } catch (error) {
-      console.error(error);
-      alert("Unable to remove candidate.");
-    }
-
-  },
-});
-
-return;
-
+      },
+    });
   } 
 
   return (
@@ -240,9 +260,7 @@ return;
         ←
       </button>
 
-
       <h1>Interested Candidates</h1>
-
 
       {!broadcast?.interestedCandidates ||
       broadcast.interestedCandidates.length === 0 ? (
@@ -259,7 +277,6 @@ return;
           >
 
             <h3>{person.name}</h3>
-
 
             {existingChats[person.uid] ? (
 
@@ -283,8 +300,6 @@ return;
 
             )}
 
-
-
             <button
               onClick={() =>
                 removeCandidate(person)
@@ -293,21 +308,23 @@ return;
               Remove
             </button>
 
-
           </div>
 
         ))
 
       )}
-       {confirmModal && (
-  <ConfirmModal
-    title={confirmModal.title}
-    message={confirmModal.message}
-    confirmText={confirmModal.confirmText}
-    onConfirm={confirmModal.action}
-    onCancel={() => setConfirmModal(null)}
-  />
-)}
+
+      {confirmModal && (
+        <ConfirmModal
+          isOpen={!!confirmModal}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          onConfirm={confirmModal.action}
+          onClose={() => setConfirmModal(null)}
+        />
+      )}
+
     </div>
   );
 }
