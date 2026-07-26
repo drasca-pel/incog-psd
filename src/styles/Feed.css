@@ -60,8 +60,8 @@
 .feedContainer {
 
   max-width: 600px;
-
   margin: auto;
+  padding-bottom: 60px;
 
 }
 
@@ -77,7 +77,7 @@
 
   padding: 18px;
 
-  margin-bottom: 20px;
+  margin-bottom: 35px;
 
 }
 
@@ -297,11 +297,10 @@
   display: block;
 
 
-  margin: 15px auto;
+  margin: 15px auto 30px auto;
 
 
   background: #111;
-
 
   border: 1px solid #333;
 
