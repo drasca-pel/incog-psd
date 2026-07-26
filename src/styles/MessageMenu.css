@@ -1,0 +1,51 @@
+.messageMenuOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.messageMenu {
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 420px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.messageMenu button {
+  background: transparent;
+  border: none;
+  color: #f2f2f2;
+  font-size: 15px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.messageMenu button:hover {
+  background: #1e1e1e;
+}
+
+.messageMenu button + button {
+  border-top: 1px solid #212121;
+}
+
+.messageMenu .dangerButton {
+  color: #ef4444;
+}
+
+.messageMenu .cancelButton {
+  text-align: center;
+  color: #8a8a8a;
+  font-weight: 600;
+  margin-top: 6px;
+}

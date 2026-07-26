@@ -2,13 +2,10 @@ import React, { useState } from "react";
 import "../styles/MessageBubble.css";
 
 export default function MessageBubble({
-
   message,
-
   isMine,
-
+  isRead,
   onLongPress,
-
 }) {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -17,66 +14,35 @@ export default function MessageBubble({
   let pressTimer;
 
   const startPress = () => {
-
     pressTimer = setTimeout(() => {
-
       onLongPress(message);
-
     }, 500);
-
   };
 
   const cancelPress = () => {
-
     clearTimeout(pressTimer);
-
   };
 
   return (
     <>
       <div
-
-        className={
-          isMine
-            ? "myMessage"
-            : "theirMessage"
-        }
-
+        className={isMine ? "myMessage" : "theirMessage"}
         onPointerDown={startPress}
         onPointerUp={cancelPress}
         onPointerLeave={cancelPress}
         onPointerCancel={cancelPress}
-
       >
 
         {message.replyTo && (
-
           <div className="replyPreview">
-
-            <strong>
-
-              ↩ {message.replyName}
-
-            </strong>
-
-            <p>
-
-              {message.replyText}
-
-            </p>
-
+            <strong>↩ {message.replyName}</strong>
+            <p>{message.replyText}</p>
           </div>
-
         )}
 
-        <strong>
-
-          {message.senderName}
-
-        </strong>
+        <strong>{message.senderName}</strong>
 
         {message.mediaType === "image" ? (
-
           <div className="messageMedia">
             <img
               src={message.mediaURL}
@@ -89,9 +55,7 @@ export default function MessageBubble({
             />
             {message.text && <p>{message.text}</p>}
           </div>
-
         ) : message.mediaType === "video" ? (
-
           <div className="messageMedia messageMediaInline">
             <video
               src={message.mediaURL}
@@ -104,9 +68,7 @@ export default function MessageBubble({
             />
             {message.text && <p>{message.text}</p>}
           </div>
-
         ) : message.mediaType === "audio" ? (
-
           <div className="messageAudio" style={{ display: "flex", flexDirection: "column", gap: "4px", margin: "5px 0" }}>
             <span>🎤 Voice Note</span>
             <audio src={message.mediaURL} controls style={{ height: "32px", maxWidth: "220px" }} />
@@ -116,31 +78,20 @@ export default function MessageBubble({
               </small>
             ) : null}
           </div>
-
         ) : (
-
           <p>{message.text}</p>
-
         )}
-        
+
         <div className="messageFooter">
+          {message.edited && <small>Edited</small>}
 
-          {message.edited && (
-
-            <small>
-
-              Edited
-
-            </small>
-
+          {isMine && (
+            isRead ? (
+              <small className="readTicks">✓✓</small>
+            ) : (
+              <small className="sentTick">✓</small>
+            )
           )}
-
-          <small>
-
-            ✓
-
-          </small>
-
         </div>
 
       </div>
@@ -175,5 +126,4 @@ export default function MessageBubble({
       )}
     </>
   );
-
 }

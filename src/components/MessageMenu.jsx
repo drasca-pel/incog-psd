@@ -1,4 +1,5 @@
 import React from "react";
+import "../styles/MessageMenu.css";
 
 export default function MessageMenu({
   isMine,
@@ -10,20 +11,16 @@ export default function MessageMenu({
   onClose,
 }) {
   return (
-    <div className="messageMenuOverlay">
-
-      <div className="messageMenu">
-
+    <div className="messageMenuOverlay" onClick={onClose}>
+      <div className="messageMenu" onClick={(e) => e.stopPropagation()}>
         <button onClick={onReply}>
           Reply
         </button>
-
         {isMine && (
           <button onClick={onEdit}>
             Edit
           </button>
         )}
-
         {isMine && (
           <button
             className="dangerButton"
@@ -32,21 +29,16 @@ export default function MessageMenu({
             Delete
           </button>
         )}
-
         <button onClick={onSave}>
           Save to Device
         </button>
-
         <button onClick={onAddToLog}>
           Add to Log
         </button>
-
-        <button onClick={onClose}>
+        <button className="cancelButton" onClick={onClose}>
           Cancel
         </button>
-         
       </div>
-
     </div>
   );
 }

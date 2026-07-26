@@ -1,199 +1,147 @@
-/* ==========================================================
-   INCOG PSD - MESSAGE BUBBLE STYLES (WHATSAPP DARK POLISH)
-========================================================== */
+/* Container for the entire chat messages list or chat room wrapper */
+.chatMessagesContainer,
+.chatRoomContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
 
-/* Base bubble */
+/* Base message bubble style */
 .myMessage,
 .theirMessage {
-  max-width: 65%;
-  padding: 6px 7px 8px 9px;
-  border-radius: 7.5px;
-  margin-bottom: 2px;
-  font-size: 14.2px;
-  line-height: 19px;
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 12px;
   word-wrap: break-word;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   position: relative;
-  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
 }
 
+/* Your messages: aligned to the right */
+.myMessage {
+  margin-left: auto;
+  margin-right: 0;
+  background-color: #0084ff;
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+}
+
+/* Their messages: aligned to the left */
+.theirMessage {
+  margin-left: 0;
+  margin-right: auto;
+  background-color: #e4e6eb;
+  color: #050505;
+  border-bottom-left-radius: 2px;
+}
+
+/* Sender name styling */
+.theirMessage strong,
+.myMessage strong {
+  font-size: 11px;
+  margin-bottom: 4px;
+  opacity: 0.85;
+}
+
+/* Text and media contents inside bubbles */
 .myMessage p,
 .theirMessage p {
-  margin: 4px 2px 0 2px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-.myMessage strong,
-.theirMessage strong {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  opacity: 1;
-  margin-bottom: 2px;
-}
-
-/* Sender: right side */
-.myMessage {
-  align-self: flex-end;
-  margin-left: auto;
-  background: #005c4b;
-  color: #e9edef;
-  border-top-right-radius: 0;
-}
-
-.myMessage strong {
-  color: #f7f9fa;
-}
-
-/* Receiver: left side */
-.theirMessage {
-  align-self: flex-start;
-  margin-right: auto;
-  background: #202c33;
-  border: none;
-  color: #e9edef;
-  border-top-left-radius: 0;
-}
-
-.theirMessage strong {
-  color: #53bdeb;
-}
-
-/* Reply preview */
-.replyPreview {
-  background: rgba(0, 0, 0, 0.15);
-  border-left: 4px solid #f7f9fa;
-  border-radius: 4px;
-  padding: 6px 10px;
-  margin-bottom: 6px;
-  font-size: 12.5px;
-}
-
-.theirMessage .replyPreview {
-  border-left-color: #00a884;
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.replyPreview strong {
-  font-size: 12px;
-  opacity: 1;
-  color: #f7f9fa;
-}
-
-.theirMessage .replyPreview strong {
-  color: #53bdeb;
-}
-
-.replyPreview p {
-  margin: 2px 0 0;
-  opacity: 1;
-  color: rgba(233, 237, 239, 0.8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.theirMessage .replyPreview p {
-  color: #8696a0;
-}
-
-/* Footer (edited / check mark) */
+/* Message footer (timestamp, edited status, read receipts) */
 .messageFooter {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  margin-top: 2px;
-  opacity: 1;
-  float: right;
-  margin-left: 8px;
-  user-select: none;
+  margin-top: 4px;
+  font-size: 10px;
+  opacity: 0.8;
 }
 
-.messageFooter small {
-  font-size: 11px;
-  color: #8696a0;
-  line-height: 1;
+.myMessage .messageFooter {
+  color: rgba(255, 255, 255, 0.85);
 }
 
-/* Media */
+.theirMessage .messageFooter {
+  color: #65676b;
+}
+
+/* Read ticks and status indicators */
+.readTicks,
+.sentTick {
+  font-weight: bold;
+}
+
+.readTicks {
+  color: #4ade80;
+}
+
+/* Media previews inside bubbles */
 .messageMedia {
-  margin: 4px 0;
-  border-radius: 6px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.messageMediaInline {
-  display: inline-block;
-}
-
-.messageImage {
-  max-width: 260px;
-  max-height: 300px;
-  width: 100%;
-  height: auto;
-  border-radius: 6px;
-  display: block;
-  margin: 0;
-  cursor: pointer;
-  object-fit: cover;
-}
-
+.messageImage,
 .messageVideo {
-  max-width: 260px;
-  max-height: 300px;
-  width: 100%;
-  height: auto;
-  border-radius: 6px;
-  display: block;
-  margin: 0;
-  cursor: pointer;
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 8px;
   object-fit: cover;
+  cursor: pointer;
 }
 
-/* Fullscreen overlay */
+/* Reply preview snippet */
+.replyPreview {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 6px 8px;
+  border-left: 3px solid currentColor;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+/* Fullscreen media overlay */
 .fullscreenOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(11, 20, 26, 0.95);
-  z-index: 9999;
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
 
 .fullscreenBackBtn {
   position: absolute;
   top: 20px;
   left: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e9edef;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: background 0.2s;
-}
-
-.fullscreenBackBtn:hover {
   background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
-.fullscreenImage {
-  max-width: 90vw;
-  max-height: 85vh;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
+.fullscreenImage,
 .fullscreenVideo {
-  max-width: 95vw;
-  max-height: 90vh;
-  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
 }

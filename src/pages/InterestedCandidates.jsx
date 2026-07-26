@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import react, { useEffect, useState } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 import {
   doc,
@@ -25,12 +25,11 @@ export default function InterestedCandidates() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [broadcast, setBroadcast] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [confirmModal, setConfirmModal] = useState(null);
+  const [broadcast, setbroadcast] = useState(null);
+  const [loading, setloading] = useState(true);
+  const [confirmmodal, setconfirmmodal] = useState(null);
 
-  // helperId -> chatId
-  const [existingChats, setExistingChats] = useState({});
+  const [existingchats, setexistingchats] = useState({});
 
   useEffect(() => {
     initializePage();
@@ -39,7 +38,7 @@ export default function InterestedCandidates() {
   async function initializePage() {
     await loadBroadcast();
     await loadChats();
-    setLoading(false);
+    setloading(false);
   }
 
   async function loadBroadcast() {
@@ -49,7 +48,7 @@ export default function InterestedCandidates() {
       );
 
       if (snap.exists()) {
-        setBroadcast({
+        setbroadcast({
           id: snap.id,
           ...snap.data(),
         });
@@ -75,7 +74,7 @@ export default function InterestedCandidates() {
         chatMap[data.helperId] = chat.id;
       });
 
-      setExistingChats(chatMap);
+      setexistingchats(chatMap);
     } catch (error) {
       console.error(error);
     }
@@ -87,15 +86,10 @@ export default function InterestedCandidates() {
 
   async function createChat(person) {
     try {
-      // Chat already exists
-      if (existingChats[person.uid]) {
-        navigate(`/chat/${existingChats[person.uid]}`);
+      if (existingchats[person.uid]) {
+        navigate(`/chat/${existingchats[person.uid]}`);
         return;
       }
-
-      // ------------------------
-      // Find or Create Workspace
-      // ------------------------
 
       let workspaceId = null;
 
@@ -144,7 +138,6 @@ export default function InterestedCandidates() {
         );
       }
 
-      // Create new chat
       const chatRef = await addDoc(
         collection(db, "chats"),
         {
@@ -175,8 +168,7 @@ export default function InterestedCandidates() {
         }
       );
 
-      // Save locally
-      setExistingChats((prev) => ({
+      setexistingchats((prev) => ({
         ...prev,
         [person.uid]: chatRef.id,
       }));
@@ -184,15 +176,22 @@ export default function InterestedCandidates() {
       navigate(`/chat/${chatRef.id}`);
     } catch (error) {
       console.error(error);
-      alert("Unable to create chat.");
+      setconfirmmodal({
+        title: "Chat Creation Failed",
+        message: "Unable to create chat. Please try again.",
+        confirmText: "OK",
+        type: "info",
+        action: () => setconfirmmodal(null),
+      });
     }
   } 
 
   async function removeCandidate(person) {
-    setConfirmModal({
+    setconfirmmodal({
       title: "Remove Candidate?",
       message: `Remove ${person.name} from this project?`,
       confirmText: "Remove",
+      type: "confirm",
 
       action: async () => {
         try {
@@ -227,7 +226,7 @@ export default function InterestedCandidates() {
             await deleteDoc(doc(db, "chats", chat.id));
           }
 
-          setBroadcast((prev) => ({
+          setbroadcast((prev) => ({
             ...prev,
             interestedCandidates:
               prev.interestedCandidates.filter(
@@ -235,16 +234,22 @@ export default function InterestedCandidates() {
               ),
           }));
 
-          setExistingChats((prev) => {
+          setexistingchats((prev) => {
             const updated = { ...prev };
             delete updated[person.uid];
             return updated;
           });
 
-          setConfirmModal(null);
+          setconfirmmodal(null);
         } catch (error) {
           console.error(error);
-          alert("Unable to remove candidate.");
+          setconfirmmodal({
+            title: "Removal Failed",
+            message: "Unable to remove candidate. Please try again.",
+            confirmText: "OK",
+            type: "info",
+            action: () => setconfirmmodal(null),
+          });
         }
       },
     });
@@ -278,12 +283,12 @@ export default function InterestedCandidates() {
 
             <h3>{person.name}</h3>
 
-            {existingChats[person.uid] ? (
+            {existingchats[person.uid] ? (
 
               <button
                 onClick={() =>
                   navigate(
-                    `/chat/${existingChats[person.uid]}`
+                    `/chat/${existingchats[person.uid]}`
                   )
                 }
               >
@@ -314,14 +319,15 @@ export default function InterestedCandidates() {
 
       )}
 
-      {confirmModal && (
+      {confirmmodal && (
         <ConfirmModal
-          isOpen={!!confirmModal}
-          title={confirmModal.title}
-          message={confirmModal.message}
-          confirmText={confirmModal.confirmText}
-          onConfirm={confirmModal.action}
-          onClose={() => setConfirmModal(null)}
+          isOpen={!!confirmmodal}
+          title={confirmmodal.title}
+          message={confirmmodal.message}
+          confirmText={confirmmodal.confirmText}
+          type={confirmmodal.type || "confirm"}
+          onConfirm={confirmmodal.action}
+          onClose={() => setconfirmmodal(null)}
         />
       )}
 

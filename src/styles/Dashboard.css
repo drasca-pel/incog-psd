@@ -1,430 +1,326 @@
-/* ==========================
-   INCOG PSD Dashboard
-========================== */
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+.dashboard {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #f2f2f2;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding-bottom: 120px;
 }
 
-body{
-    background:#0A0A0A;
-    font-family:Inter,Arial,sans-serif;
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #111111;
+  border-bottom: 1px solid #1e1e1e;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
-.dashboard{
-    min-height:100vh;
-    background:#0A0A0A;
-    color:#FFFFFF;
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* ==========================
-   TOP BAR
-========================== */
-
-.topbar{
-    height:72px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 22px;
-    border-bottom:1px solid #202020;
-    background:#0A0A0A;
-    position:sticky;
-    top:0;
-    z-index:100;
+.logoBox {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.logoSection{
-    display:flex;
-    align-items:center;
-    gap:12px;
+.logoSection h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
 }
 
-.logoBox{
-    width:44px;
-    height:44px;
-    border-radius:14px;
-    background:#FFFFFF;
-    color:#000;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:20px;
-    font-weight:700;
+.logoSection p {
+  margin: 0;
+  font-size: 10px;
+  color: #7d7d7d;
 }
 
-.logoSection h2{
-    font-size:20px;
-    font-weight:700;
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.logoSection p{
-    font-size:11px;
-    color:#8F8F8F;
+.iconButton {
+  position: relative;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
-.topActions{
-    display:flex;
-    align-items:center;
-    gap:16px;
+.iconButton:hover {
+  background: #232323;
 }
 
-.iconButton{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    border:1px solid #2B2B2B;
-    background:#171717;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    cursor:pointer;
-    transition:.25s;
+.notificationBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #111111;
 }
 
-.iconButton:hover{
-    background:#242424;
+.profileAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #f2f2f2;
 }
 
-.notificationButton{
-    position:relative;
+.dashboardContent {
+  padding: 16px;
 }
 
-.notificationBadge{
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#FF3B30;
-    position:absolute;
-    right:10px;
-    top:10px;
+.welcomeCard {
+  background: linear-gradient(135deg, #151b2e, #0f1420);
+  border: 1px solid #212635;
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 22px;
 }
 
-.profileAvatar{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:#2A2A2A;
-    border:2px solid #404040;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:700;
+.welcomeLabel {
+  font-size: 11px;
+  color: #7d9bff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
 }
 
-/* ==========================
-   CONTENT
-========================== */
-
-.dashboardContent{
-    padding:24px;
+.welcomeCard h1 {
+  margin: 6px 0 8px;
+  font-size: 22px;
 }
 
-.welcomeCard{
-    background:#141414;
-    border:1px solid #242424;
-    border-radius:22px;
-    padding:26px;
+.welcomeCard p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #a8a8a8;
+  line-height: 1.5;
 }
 
-.welcomeLabel{
-    color:#8E8E8E;
-    font-size:13px;
+.primaryButton {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.welcomeCard h1{
-    margin-top:8px;
-    font-size:34px;
-    font-weight:700;
+.primaryButton:hover {
+  background: #2563eb;
 }
 
-.welcomeCard p{
-    margin-top:16px;
-    line-height:28px;
-    color:#B5B5B5;
-    font-size:16px;
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.primaryButton{
-    margin-top:24px;
-    background:#FFFFFF;
-    color:#000;
-    border:none;
-    padding:14px 24px;
-    border-radius:14px;
-    font-size:15px;
-    font-weight:700;
-    cursor:pointer;
-    transition:.25s;
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 16px;
 }
 
-.primaryButton:hover{
-    opacity:.9;
-}/* ===========================
-   RECENT BROADCASTS
-=========================== */
-
-.broadcastSection{
-    margin-top:30px;
+.viewButton,
+.seeAllButton {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.sectionHeader{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:18px;
+.broadcastSection,
+.chatSection {
+  margin-bottom: 26px;
 }
 
-.sectionHeader h2{
-    font-size:20px;
-    font-weight:700;
+.broadcastList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.seeAllButton{
-    background:none;
-    border:none;
-    color:#8FA8FF;
-    cursor:pointer;
-    font-size:14px;
-    font-weight:600;
+.broadcastCard {
+  background: #121212;
+  border: 1px solid #212121;
+  border-radius: 14px;
+  padding: 14px;
 }
 
-.broadcastList{
-    display:flex;
-    flex-direction:column;
-    gap:16px;
+.broadcastHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.broadcastCard{
-    background:#151515;
-    border:1px solid #252525;
-    border-radius:18px;
-    padding:18px;
+.broadcastAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
-.emptyState{
-    background:#151515;
-    border:1px solid #252525;
-    border-radius:18px;
-    padding:28px;
-    text-align:center;
-    color:#8E8E8E;
-} .broadcastHeader{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    margin-bottom:15px;
+.broadcastInfo h3 {
+  margin: 0;
+  font-size: 14px;
 }
 
-.broadcastAvatar{
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    background:#2A2A2A;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:700;
-    font-size:18px;
+.broadcastInfo span {
+  font-size: 11px;
+  color: #7d9bff;
 }
 
-.broadcastInfo h3{
-    font-size:17px;
-    margin-bottom:4px;
+.broadcastDescription {
+  margin: 0;
+  font-size: 13px;
+  color: #a8a8a8;
+  line-height: 1.4;
 }
 
-.broadcastInfo span{
-    color:#8E8E8E;
-    font-size:13px;
+.emptyState {
+  text-align: center;
+  padding: 24px 10px;
+  color: #6b6b6b;
+  font-size: 13px;
 }
 
-.broadcastDescription{
-    color:#C0C0C0;
-    line-height:24px;
-    margin-bottom:18px;
+.recentChatsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.broadcastFooter{
-    display:flex;
-    gap:12px;
+.recentChatCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #121212;
+  border: 1px solid #212121;
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.acceptButton{
-    flex:1;
-    background:#FFFFFF;
-    color:#000;
-    border:none;
-    padding:12px;
-    border-radius:12px;
-    font-weight:700;
-    cursor:pointer;
+.recentChatCard:hover {
+  background: #171717;
 }
 
-.viewButton{
-    flex:1;
-    background:#202020;
-    color:#FFFFFF;
-    border:1px solid #303030;
-    padding:12px;
-    border-radius:12px;
-    cursor:pointer;
-}/* ================= RECENT CHATS ================= */
-
-.chatSection{
-margin-top:35px;
+.recentChatAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: #f2f2f2;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-.chatCard{
-display:flex;
-align-items:center;
-gap:15px;
-background:#151515;
-border:1px solid #252525;
-border-radius:18px;
-padding:18px;
+.recentChatAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.chatAvatar{
-width:50px;
-height:50px;
-border-radius:50%;
-background:#2C2C2C;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:bold;
-font-size:18px;
+.recentChatBody {
+  flex: 1;
+  min-width: 0;
 }
 
-.chatDetails h3{
-font-size:16px;
-margin-bottom:6px;
+.recentChatTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
-.chatDetails p{
-font-size:13px;
-color:#8E8E8E;
-}/* ================= ACTIVE PROJECTS ================= */
-
-.projectSection{
-margin-top:35px;
-margin-bottom:90px;
+.recentChatName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f2f2f2;
 }
 
-.projectCard{
-background:#151515;
-border:1px solid #252525;
-border-radius:18px;
-padding:22px;
+.recentChatUnread {
+  background: #22c55e;
+  color: #0a0a0a;
+  font-size: 12px;
+  font-weight: 800;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+  flex-shrink: 0;
 }
 
-.projectCard h3{
-font-size:18px;
-margin-bottom:10px;
+.recentChatPreview {
+  display: block;
+  font-size: 12px;
+  color: #8a8a8a;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.projectCard p{
-color:#8E8E8E;
-line-height:24px;
-}/* ==========================
-   INCOG PSD BOTTOM NAV
-========================== */
-
-.bottomNav{
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-
-    height:75px;
-
-    background:#0F0F0F;
-
-    border-top:1px solid #242424;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-around;
-
-    z-index:1000;
-
-    padding:0 10px;
-}
-
-
-.navItem{
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-
-    gap:5px;
-
-    color:#8A8A8A;
-
-    text-decoration:none;
-
-    font-size:11px;
-
-    transition:0.2s;
-
-}
-
-
-.navItem.active,
-.navItem:hover{
-
-    color:white;
-
-}
-
-
-.navIcon{
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-}
-
-
-/* Center Broadcast Button */
-
-.navCreate{
-
-    width:55px;
-    height:55px;
-
-    border-radius:50%;
-
-    background:#FFFFFF;
-
-    color:#000000;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    text-decoration:none;
-
-    font-size:32px;
-
-    font-weight:300;
-
-    margin-top:-35px;
-
-    border:5px solid #0F0F0F;
-
-}
-
-
-.navCreate:hover{
-
-    transform:scale(1.05);
-
+.recentChatPreview.unread {
+  color: #f2f2f2;
+  font-weight: 600;
 }

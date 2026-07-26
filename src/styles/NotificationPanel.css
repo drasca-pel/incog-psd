@@ -1,0 +1,104 @@
+.notifoverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.notifpanel {
+  position: absolute;
+  top: 60px;
+  right: 16px;
+  width: 320px;
+  max-height: 420px;
+  background: #111111;
+  border: 1px solid #232323;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notifpanelheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #212121;
+}
+
+.notifpanelheader h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #f2f2f2;
+}
+
+.notifclosebtn {
+  background: none;
+  border: none;
+  color: #8a8a8a;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.notiflist {
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.notifempty {
+  padding: 30px 16px;
+  text-align: center;
+  color: #6b6b6b;
+  font-size: 13px;
+}
+
+.notifitem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.notifitem:hover {
+  background: #1a1a1a;
+}
+
+.notifdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.notifcontent {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifcontent strong {
+  display: block;
+  font-size: 13px;
+  color: #f2f2f2;
+}
+
+.notifcontent p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #a0a0a0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notiftime {
+  font-size: 11px;
+  color: #6b6b6b;
+  flex-shrink: 0;
+}

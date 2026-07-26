@@ -1,0 +1,114 @@
+.logpickeroverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.logpickerbox {
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.logpickerbox h3 {
+  margin: 0 0 14px;
+  color: #f2f2f2;
+  font-size: 16px;
+}
+
+.logcreaterow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.logcreaterow input {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #f2f2f2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.logcreatebtn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logcreatebtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.logdivider {
+  text-align: center;
+  color: #6b6b6b;
+  font-size: 12px;
+  margin: 6px 0 12px;
+}
+
+.loglist {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.loglistitem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a1a;
+  border: 1px solid #232323;
+  color: #f2f2f2;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.loglistitem:hover {
+  background: #202020;
+}
+
+.logitemcount {
+  color: #8a8a8a;
+  font-size: 12px;
+}
+
+.logemptytext {
+  color: #6b6b6b;
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+.logcancelbtn {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #a8a8a8;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}

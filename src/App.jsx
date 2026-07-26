@@ -23,25 +23,27 @@ import MyBroadcasts from "./pages/MyBroadcasts";
 import EditBroadcast from "./pages/EditBroadcast";
 import { checkExpiredBroadcasts } from "./utils/checkExpiredBroadcasts";
 import InterestedCandidates from "./pages/InterestedCandidates";
+import Logs from "./pages/Logs";
+import LogDetail from "./pages/LogDetail";
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
- useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    setUser(currentUser);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
 
-    if (currentUser) {
-      await checkExpiredBroadcasts();
-    }
+      if (currentUser) {
+        await checkExpiredBroadcasts();
+      }
 
-    setLoading(false);
-  });
+      setLoading(false);
+    });
 
-  return () => unsubscribe();
-}, []);
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
     return (
@@ -55,19 +57,21 @@ function PrivateRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
- return (
-  <>
-    {children}
+  return (
+    <>
+      {children}
 
-    {[
-      "/dashboard",
-      "/feed",
-      "/my-broadcasts",
-      "/alerts",
-      "/broadcast",
-    ].includes(location.pathname) && <BottomNav />}
-  </>
-);
+      {[
+        "/dashboard",
+        "/feed",
+        "/my-broadcasts",
+        "/alerts",
+        "/broadcast",
+        "/chat",
+        "/logs",
+      ].includes(location.pathname) && <BottomNav />}
+    </>
+  );
 }
 
 export default function App() {
@@ -79,40 +83,75 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/community" element={<Community />} />
+        
         <Route path="/broadcast/:id" element={<PrivateRoute><BroadcastDetails /></PrivateRoute>} />
         <Route path="/my-broadcasts" element={<PrivateRoute><MyBroadcasts /></PrivateRoute>} />
+      
+        
         <Route
- path="/feed"
- element={<Feed />}
-/>
+          path="/feed"
+          element={
+            <PrivateRoute>
+              <Feed />
+            </PrivateRoute>
+          }
+        />
 
-<Route
-  path="/profile/:uid"
-  element={<Profile />}
-/>
+        <Route
+          path="/profile/:uid"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
 
+        <Route
+          path="/create-post"
+          element={
+            <PrivateRoute>
+              <CreatePost />
+            </PrivateRoute>
+          }
+        />
 
-<Route
- path="/create-post"
- element={<CreatePost />}
-/>
-      <Route
-  path="/edit-broadcast/:id"
-  element={
-    <PrivateRoute>
-      <EditBroadcast />
-    </PrivateRoute>
-  }
-/>
-         <Route
-  path="/interested-candidates/:id"
-  element={
-    <PrivateRoute>
-      <InterestedCandidates />
-    </PrivateRoute>
-  }
-/>
-         <Route path="/chat/:id" element={<PrivateRoute><ChatRoom /></PrivateRoute>} />
+        <Route
+          path="/edit-broadcast/:id"
+          element={
+            <PrivateRoute>
+              <EditBroadcast />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/interested-candidates/:id"
+          element={
+            <PrivateRoute>
+              <InterestedCandidates />
+            </PrivateRoute>
+          }
+        />
+
+        <Route path="/chat/:id" element={<PrivateRoute><ChatRoom /></PrivateRoute>} />
+
+        {/* Logs */}
+        <Route
+          path="/logs"
+          element={
+            <PrivateRoute>
+              <Logs />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/logs/:id"
+          element={
+            <PrivateRoute>
+              <LogDetail />
+            </PrivateRoute>
+          }
+        />
 
         {/* Setup */}
         <Route
@@ -130,14 +169,6 @@ export default function App() {
           element={
             <PrivateRoute>
               <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/feed"
-          element={
-            <PrivateRoute>
-              <Feed />
             </PrivateRoute>
           }
         />
@@ -195,7 +226,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "#0B1120",
+    background: "#000000",
     color: "#38BDF8",
     fontSize: "20px",
     fontWeight: "700",
