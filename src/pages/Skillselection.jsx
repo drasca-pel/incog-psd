@@ -106,7 +106,7 @@ export default function SkillSelection() {
         </div>
 
         <p style={styles.counter}>
-          {selected.length} / 2 Selected
+          {selected.length} / 5 Selected
         </p>
 
         <button
