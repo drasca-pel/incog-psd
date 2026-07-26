@@ -1,40 +1,42 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   useEffect(() => {
-    const handler = (e) => {
-      console.log("beforeinstallprompt fired");
-
+    const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
-
       setDeferredPrompt(e);
-
-      alert("Install prompt is ready!");
     };
 
-    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener(
+      "beforeinstallprompt",
+      handleBeforeInstallPrompt
+    );
 
     return () => {
       window.removeEventListener(
         "beforeinstallprompt",
-        handler
+        handleBeforeInstallPrompt
       );
     };
   }, []);
 
-  async function installApp() {
+  const handleInstall = async () => {
     if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
 
-    const result = await deferredPrompt.userChoice;
+    const { outcome } = await deferredPrompt.userChoice;
 
-    console.log(result.outcome);
+    if (outcome === "accepted") {
+      console.log("User installed the app");
+    } else {
+      console.log("User dismissed the install");
+    }
 
     setDeferredPrompt(null);
-  }
+  };
 
   if (!deferredPrompt) return null;
 
@@ -42,30 +44,33 @@ export default function InstallPrompt() {
     <div
       style={{
         position: "fixed",
-        bottom: 20,
-        left: 20,
-        right: 20,
-        background: "#111",
+        top: "15px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        background: "#111827",
         color: "#fff",
-        padding: 20,
-        borderRadius: 12,
+        padding: "14px 20px",
+        borderRadius: "14px",
+        border: "1px solid #374151",
+        boxShadow: "0 10px 30px rgba(0,0,0,.4)",
+        display: "flex",
+        alignItems: "center",
+        gap: "15px",
         zIndex: 9999,
       }}
     >
-      <h3>Install INCOG PSD</h3>
-
-      <p>
-        Install the app on your phone.
-      </p>
+      <span>Install INCOG PSD for a better experience.</span>
 
       <button
-        onClick={installApp}
+        onClick={handleInstall}
         style={{
-          padding: "10px 20px",
-          background: "#0A84FF",
+          background: "#2563eb",
           color: "#fff",
           border: "none",
-          borderRadius: 8,
+          borderRadius: "8px",
+          padding: "10px 18px",
+          cursor: "pointer",
+          fontWeight: "600",
         }}
       >
         Install
