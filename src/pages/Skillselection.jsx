@@ -8,22 +8,15 @@ import ConfirmModal from "../components/ConfirmModal";
 // Add, remove, or rename skills here — this is the single
 // source of truth used across the app.
 const skills = [
-  "Software Development",
-  "Web Development",
-  "Mobile Development",
+  "Software & web Development",
   "Artificial Intelligence",
-  "Machine Learning",
   "Embedded Systems & IOT",
   "MATHEMATICS & PHYSICS",
   "Electronics",
   "Robotics",
-  "Cybersecurity",
-  "Cloud Computing",
   "UI/UX Design",
   "Graphic Design",
   "Data Science",
-  "Game Development",
-  "Blockchain"
 ];
 
 export default function SkillSelection() {
