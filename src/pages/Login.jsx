@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
 import Input from "../components/Input";
 import Button from "../components/Button";
 
@@ -22,8 +23,47 @@ export default function Login() {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard");
+      const result = await signInWithEmailAndPassword(auth, email, password);
+
+      const userRef = doc(db, "users", result.user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // Auth account exists but Firestore profile was never created
+        // (e.g. network dropped mid-signup). Create a minimal profile
+        // now so SkillSelection has something to update.
+        await setDoc(userRef, {
+          uid: result.user.uid,
+          name: result.user.displayName || "",
+          username: "",
+          email: result.user.email || email,
+          bio: "",
+          photoURL: "",
+          university: "",
+          department: "",
+          level: "",
+          country: "",
+          github: "",
+          linkedin: "",
+          portfolio: "",
+          skills: [],
+          lastSkillUpdate: new Date(),
+          profileCompleted: false,
+          createdAt: new Date(),
+        });
+
+        navigate("/SkillSelection");
+        setLoading(false);
+        return;
+      }
+
+      const userData = userSnap.data();
+
+      if (!userData.profileCompleted) {
+        navigate("/SkillSelection");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       switch (err.code) {
         case "auth/invalid-credential":

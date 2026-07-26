@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import ConfirmModal from "../components/ConfirmModal";
 
+// The master list of all skills available on INCOG PSD.
+// Add, remove, or rename skills here — this is the single
+// source of truth used across the app.
 const skills = [
   "Software Development",
   "Web Development",
@@ -43,8 +46,8 @@ export default function SkillSelection() {
     if (selected.includes(skill)) {
       setSelected(selected.filter((s) => s !== skill));
     } else {
-      if (selected.length >= 5) {
-        showInfo("Limit Reached", "You can only choose up to 5 options.");
+      if (selected.length >= 2) {
+        showInfo("Limit Reached", "You can only choose up to 2 skills.");
         return;
       }
       setSelected([...selected, skill]);
@@ -60,10 +63,17 @@ export default function SkillSelection() {
     setLoading(true);
 
     try {
-      await updateDoc(doc(db, "users", auth.currentUser.uid), {
-        skills: selected,
-        profileCompleted: true,
-      });
+      // setDoc with merge:true works whether or not the user's
+      // Firestore profile document already exists — updateDoc would
+      // fail if signup was interrupted and no document was created yet.
+      await setDoc(
+        doc(db, "users", auth.currentUser.uid),
+        {
+          skills: selected,
+          profileCompleted: true,
+        },
+        { merge: true }
+      );
 
       navigate("/dashboard");
     } catch (err) {
@@ -79,8 +89,7 @@ export default function SkillSelection() {
         <h1 style={styles.heading}>Choose Your Skills</h1>
 
         <p style={styles.subtitle}>
-          Select up to 5
-           options you're interested in.
+          Select up to 2 skills you're interested in.
         </p>
 
         <div style={styles.grid}>
@@ -104,8 +113,7 @@ export default function SkillSelection() {
         </div>
 
         <p style={styles.counter}>
-          {selected.length} / 5
-         Selected
+          {selected.length} / 2 Selected
         </p>
 
         <button
