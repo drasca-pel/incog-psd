@@ -1,49 +1,63 @@
-import react, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getlogitems, deletelogitem } from "../utils/logsService";
+import { getLogItems, deleteLogItem } from "../utils/logsService";
 import ConfirmModal from "../components/ConfirmModal";
 import "../styles/Logs.css";
 
-export default function logdetail() {
+export default function LogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [items, setitems] = useState([]);
-  const [loading, setloading] = useState(true);
-  const [confirmmodal, setconfirmmodal] = useState(null);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  const menuRef = useRef(null);
 
   useEffect(() => {
-    loaditems();
+    loadItems();
   }, [id]);
 
-  async function loaditems() {
-    try {
-      const data = await getlogitems(id);
-      setitems(data);
-    } catch (err) {
-      console.error("error loading log items:", err);
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpenMenuId(null);
+      }
     }
-    setloading(false);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function loadItems() {
+    try {
+      const data = await getLogItems(id);
+      setItems(data);
+    } catch (err) {
+      console.error("Error loading log items:", err);
+    }
+    setLoading(false);
   }
 
-  function handledeleteitem(item) {
-    setconfirmmodal({
-      title: "remove item?",
-      message: "remove this item from the log?",
-      confirmText: "remove",
+  function handleDeleteItem(item) {
+    setOpenMenuId(null);
+    setConfirmModal({
+      title: "Remove Item?",
+      message: "Remove this item from the log?",
+      confirmText: "Remove",
       type: "confirm",
       action: async () => {
         try {
-          await deletelogitem(item.id, id);
-          setitems((prev) => prev.filter((i) => i.id !== item.id));
-          setconfirmmodal(null);
+          await deleteLogItem(item.id, id);
+          setItems((prev) => prev.filter((i) => i.id !== item.id));
+          setConfirmModal(null);
         } catch (err) {
-          console.error("error deleting log item:", err);
-          setconfirmmodal({
-            title: "removal failed",
-            message: "unable to remove this item. please try again.",
-            confirmText: "ok",
+          console.error("Error deleting log item:", err);
+          setConfirmModal({
+            title: "Removal Failed",
+            message: "Unable to remove this item. Please try again.",
+            confirmText: "OK",
             type: "info",
-            action: () => setconfirmmodal(null),
+            action: () => setConfirmModal(null),
           });
         }
       },
@@ -51,65 +65,80 @@ export default function logdetail() {
   }
 
   return (
-    <div className="logdetailpage">
-      <button className="backbutton" onClick={() => navigate(-1)}>←</button>
-      <h1>log items</h1>
+    <div className="logDetailPage">
+      <button className="backButton" onClick={() => navigate(-1)}>←</button>
+      <h1>Log Items</h1>
 
       {loading ? (
-        <p className="logsloading">loading...</p>
+        <p className="logsLoading">Loading...</p>
       ) : items.length === 0 ? (
-        <div className="emptystate">
-          <h3>nothing saved yet</h3>
+        <div className="emptyState">
+          <h3>Nothing Saved Yet</h3>
         </div>
       ) : (
-        <div className="logitemslist">
+        <div className="logItemsList">
           {items.map((item) => (
-            <div key={item.id} className="logitemcard">
-              <div className="logitemheader">
+            <div key={item.id} className="logItemCard">
+              <div className="logItemHeader">
                 <strong>{item.senderName}</strong>
-                <button
-                  className="logitemdeletebtn"
-                  onClick={() => handledeleteitem(item)}
-                >
-                  🗑
-                </button>
+
+                <div className="logItemMenuWrapper" style={{ position: "relative" }}>
+                  <button
+                    className="logItemMenuBtn"
+                    style={{ background: "none", border: "none", color: "#a1a1aa", fontSize: "16px", cursor: "pointer", padding: "4px 8px", borderRadius: "6px" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === item.id ? null : item.id);
+                    }}
+                  >
+                    ⋮
+                  </button>
+
+                  {openMenuId === item.id && (
+                    <div className="folderMenuDropdown" ref={menuRef}>
+                      <button onClick={() => handleDeleteItem(item)}>
+                        🗑 Delete Item
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {item.type === "image" && item.mediaURL && (
                 <img
                   src={item.mediaURL}
                   alt="saved"
-                  className="logitemimage"
+                  className="logItemImage"
                   onClick={() => navigate(`/chat/${item.chatId}`)}
                 />
               )}
 
               {item.type === "video" && item.mediaURL && (
-                <video src={item.mediaURL} controls className="logitemvideo" />
+                <video src={item.mediaURL} controls className="logItemVideo" />
               )}
 
-              {item.text && <p className="logitemtext">{item.text}</p>}
+              {item.text && <p className="logItemText">{item.text}</p>}
 
               <button
-                className="logitemjumpbtn"
+                className="logItemJumpBtn"
                 onClick={() => navigate(`/chat/${item.chatId}`)}
               >
-                go to chat →
+                Go to Chat →
               </button>
             </div>
           ))}
         </div>
       )}
 
-      {confirmmodal && (
+      {confirmModal && (
         <ConfirmModal
-          isOpen={!!confirmmodal}
-          title={confirmmodal.title}
-          message={confirmmodal.message}
-          confirmText={confirmmodal.confirmText}
-          type={confirmmodal.type || "confirm"}
-          onConfirm={confirmmodal.action}
-          onClose={() => setconfirmmodal(null)}
+          isOpen={!!confirmModal}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          type={confirmModal.type || "confirm"}
+          onConfirm={confirmModal.action}
+          onClose={() => setConfirmModal(null)}
         />
       )}
     </div>

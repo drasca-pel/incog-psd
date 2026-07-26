@@ -1,48 +1,86 @@
-import react, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getuserlogs, deletelog } from "../utils/logsService";
+import { getUserLogs, createLog, deleteLog } from "../utils/logsService";
 import ConfirmModal from "../components/ConfirmModal";
 import "../styles/Logs.css";
 
-export default function logs() {
+export default function Logs() {
   const navigate = useNavigate();
-  const [logs, setlogs] = useState([]);
-  const [loading, setloading] = useState(true);
-  const [confirmmodal, setconfirmmodal] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [showCreateBox, setShowCreateBox] = useState(false);
+  const [newLogName, setNewLogName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  const menuRef = useRef(null);
 
   useEffect(() => {
-    loadlogs();
+    loadLogs();
   }, []);
 
-  async function loadlogs() {
-    try {
-      const data = await getuserlogs();
-      setlogs(data);
-    } catch (err) {
-      console.error("error loading logs:", err);
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpenMenuId(null);
+      }
     }
-    setloading(false);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function loadLogs() {
+    try {
+      const data = await getUserLogs();
+      setLogs(data);
+    } catch (err) {
+      console.error("Error loading logs:", err);
+    }
+    setLoading(false);
   }
 
-  function handledeletelog(log) {
-    setconfirmmodal({
-      title: "delete log?",
-      message: `delete "${log.name}" and everything saved inside it?`,
-      confirmText: "delete",
+  async function handleCreateLog() {
+    if (!newLogName.trim()) return;
+    setCreating(true);
+    try {
+      await createLog(newLogName.trim());
+      setNewLogName("");
+      setShowCreateBox(false);
+      await loadLogs();
+    } catch (err) {
+      console.error("Error creating log:", err);
+      setConfirmModal({
+        title: "Creation Failed",
+        message: "Unable to create this log. Please try again.",
+        confirmText: "OK",
+        type: "info",
+        action: () => setConfirmModal(null),
+      });
+    }
+    setCreating(false);
+  }
+
+  function handleDeleteLog(log) {
+    setOpenMenuId(null);
+    setConfirmModal({
+      title: "Delete Folder?",
+      message: `Delete "${log.name}" and everything saved inside it?`,
+      confirmText: "Delete",
       type: "confirm",
       action: async () => {
         try {
-          await deletelog(log.id);
-          setlogs((prev) => prev.filter((l) => l.id !== log.id));
-          setconfirmmodal(null);
+          await deleteLog(log.id);
+          setLogs((prev) => prev.filter((l) => l.id !== log.id));
+          setConfirmModal(null);
         } catch (err) {
-          console.error("error deleting log:", err);
-          setconfirmmodal({
-            title: "delete failed",
-            message: "unable to delete this log. please try again.",
-            confirmText: "ok",
+          console.error("Error deleting log:", err);
+          setConfirmModal({
+            title: "Delete Failed",
+            message: "Unable to delete this log. Please try again.",
+            confirmText: "OK",
             type: "info",
-            action: () => setconfirmmodal(null),
+            action: () => setConfirmModal(null),
           });
         }
       },
@@ -50,53 +88,98 @@ export default function logs() {
   }
 
   return (
-    <div className="logspage">
-      <button className="backbutton" onClick={() => navigate(-1)}>←</button>
-      <h1>my logs</h1>
+    <div className="logsPage">
+      <button className="backButton" onClick={() => navigate(-1)}>←</button>
+
+      <div className="logsPageHeader">
+        <h1>My Logs</h1>
+        <button
+          className="newLogBtn"
+          onClick={() => setShowCreateBox((prev) => !prev)}
+        >
+          + New Log
+        </button>
+      </div>
+
+      {showCreateBox && (
+        <div className="newLogRow">
+          <input
+            type="text"
+            placeholder="Log name..."
+            value={newLogName}
+            onChange={(e) => setNewLogName(e.target.value)}
+            autoFocus
+          />
+          <button
+            className="newLogConfirmBtn"
+            disabled={creating || !newLogName.trim()}
+            onClick={handleCreateLog}
+          >
+            Create
+          </button>
+        </div>
+      )}
 
       {loading ? (
-        <p className="logsloading">loading...</p>
+        <p className="logsLoading">Loading...</p>
       ) : logs.length === 0 ? (
-        <div className="emptystate">
-          <h3>no logs yet</h3>
-          <p>long-press any message, image, or video in chat to save it here.</p>
+        <div className="emptyState">
+          <h3>No Logs Yet</h3>
+          <p>Create one above, or long-press any message in chat to save it here.</p>
         </div>
       ) : (
-        <div className="logsgrid">
+        <div className="logsGrid">
           {logs.map((log) => (
-            <div
-              key={log.id}
-              className="logcard"
-              onClick={() => navigate(`/logs/${log.id}`)}
-            >
-              <div className="logcardicon">📁</div>
-              <div className="logcardinfo">
-                <h3>{log.name}</h3>
-                <span>{log.itemCount || 0} items</span>
-              </div>
-              <button
-                className="logdeletebtn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handledeletelog(log);
-                }}
+            <div key={log.id} className="folderCard">
+              <div className="folderTab" />
+              <div
+                className="folderBody"
+                onClick={() => navigate(`/logs/${log.id}`)}
               >
-                🗑
-              </button>
+                <div style={{ position: "relative" }}>
+                  <button
+                    className="folderMenuBtn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === log.id ? null : log.id);
+                    }}
+                  >
+                    ⋮
+                  </button>
+
+                  {openMenuId === log.id && (
+                    <div
+                      className="folderMenuDropdown"
+                      ref={menuRef}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button onClick={() => handleDeleteLog(log)}>
+                        🗑 Delete Folder
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="folderIcon">📁</div>
+                <div className="folderInfo">
+                  <h3>{log.name}</h3>
+                  <span>{log.itemCount || 0} items</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {confirmmodal && (
+      {confirmModal && (
         <ConfirmModal
-          isOpen={!!confirmmodal}
-          title={confirmmodal.title}
-          message={confirmmodal.message}
-          confirmText={confirmmodal.confirmText}
-          type={confirmmodal.type || "confirm"}
-          onConfirm={confirmmodal.action}
-          onClose={() => setconfirmmodal(null)}
+          isOpen={!!confirmModal}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          type={confirmModal.type || "confirm"}
+          onConfirm={confirmModal.action}
+          onClose={() => setConfirmModal(null)}
         />
       )}
     </div>

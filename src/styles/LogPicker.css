@@ -1,4 +1,4 @@
-.logpickeroverlay {
+.logPickerOverlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
@@ -8,7 +8,7 @@
   z-index: 1000;
 }
 
-.logpickerbox {
+.logPickerBox {
   background: #141414;
   border: 1px solid #262626;
   border-radius: 20px 20px 0 0;
@@ -20,19 +20,19 @@
   flex-direction: column;
 }
 
-.logpickerbox h3 {
+.logPickerBox h3 {
   margin: 0 0 14px;
   color: #f2f2f2;
   font-size: 16px;
 }
 
-.logcreaterow {
+.logCreateRow {
   display: flex;
   gap: 8px;
   margin-bottom: 14px;
 }
 
-.logcreaterow input {
+.logCreateRow input {
   flex: 1;
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
@@ -43,8 +43,8 @@
   outline: none;
 }
 
-.logcreatebtn {
-  background: #3b82f6;
+.logCreateBtn {
+  background: #f97316;
   color: #fff;
   border: none;
   padding: 0 14px;
@@ -54,19 +54,19 @@
   cursor: pointer;
 }
 
-.logcreatebtn:disabled {
+.logCreateBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.logdivider {
+.logDivider {
   text-align: center;
   color: #6b6b6b;
   font-size: 12px;
   margin: 6px 0 12px;
 }
 
-.loglist {
+.logList {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -74,7 +74,7 @@
   margin-bottom: 14px;
 }
 
-.loglistitem {
+.logListItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -87,23 +87,23 @@
   cursor: pointer;
 }
 
-.loglistitem:hover {
+.logListItem:hover {
   background: #202020;
 }
 
-.logitemcount {
+.logItemCount {
   color: #8a8a8a;
   font-size: 12px;
 }
 
-.logemptytext {
+.logEmptyText {
   color: #6b6b6b;
   font-size: 13px;
   text-align: center;
   padding: 12px 0;
 }
 
-.logcancelbtn {
+.logCancelBtn {
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #a8a8a8;

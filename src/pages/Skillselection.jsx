@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import ConfirmModal from "../components/ConfirmModal";
 
 const skills = [
-  "Software Developme",
+  "Software Development",
   "Web Development",
   "Mobile Development",
   "Artificial Intelligence",
@@ -26,13 +27,24 @@ export default function SkillSelection() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null);
+
+  function showInfo(title, message) {
+    setConfirmModal({
+      title,
+      message,
+      confirmText: "OK",
+      type: "info",
+      action: () => setConfirmModal(null),
+    });
+  }
 
   function toggleSkill(skill) {
     if (selected.includes(skill)) {
       setSelected(selected.filter((s) => s !== skill));
     } else {
-      if (selected.length >= 5) {
-        alert("You can only choose up to 5 skills.");
+      if (selected.length >= 2) {
+        showInfo("Limit Reached", "You can only choose up to 2 options.");
         return;
       }
       setSelected([...selected, skill]);
@@ -41,21 +53,21 @@ export default function SkillSelection() {
 
   async function saveSkills() {
     if (selected.length === 0) {
-      alert("Please choose at least one skill.");
+      showInfo("No Skills Selected", "Please choose at least one skill.");
       return;
     }
 
     setLoading(true);
 
     try {
-     await updateDoc(doc(db, "users", auth.currentUser.uid), {
-  skills: selected,
-  profileCompleted: true,
-});
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        skills: selected,
+        profileCompleted: true,
+      });
 
       navigate("/dashboard");
     } catch (err) {
-      alert(err.message);
+      showInfo("Something Went Wrong", err.message);
     }
 
     setLoading(false);
@@ -64,10 +76,10 @@ export default function SkillSelection() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h1>Choose Your Skills</h1>
+        <h1 style={styles.heading}>Choose Your Skills</h1>
 
         <p style={styles.subtitle}>
-          Select up to 5 skills you're interested in.
+          Select up to 2 options you're interested in.
         </p>
 
         <div style={styles.grid}>
@@ -78,8 +90,11 @@ export default function SkillSelection() {
               style={{
                 ...styles.skill,
                 background: selected.includes(skill)
-                  ? "#2563EB"
-                  : "#1E293B",
+                  ? styles.colors.accent
+                  : styles.colors.pillBg,
+                borderColor: selected.includes(skill)
+                  ? styles.colors.accent
+                  : styles.colors.border,
               }}
             >
               {skill}
@@ -88,44 +103,84 @@ export default function SkillSelection() {
         </div>
 
         <p style={styles.counter}>
-          {selected.length} / 5 Selected
+          {selected.length} / 2 Selected
         </p>
 
         <button
           onClick={saveSkills}
-          style={styles.button}
+          style={{
+            ...styles.button,
+            opacity: loading ? 0.5 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
           disabled={loading}
         >
           {loading ? "Saving..." : "Continue"}
         </button>
       </div>
+
+      {confirmModal && (
+        <ConfirmModal
+          isOpen={true}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          type={confirmModal.type || "confirm"}
+          onConfirm={confirmModal.action}
+          onClose={() => setConfirmModal(null)}
+        />
+      )}
     </div>
   );
 }
 
+// ============================================
+// ALL STYLING LIVES HERE — edit colors, sizes,
+// spacing, etc. directly in this object.
+// ============================================
 const styles = {
+  // Central colors — change these and every element below updates
+  colors: {
+    pageBg: "#0a0a0a",
+    cardBg: "#121212",
+    pillBg: "#1a1a1a",
+    border: "#212121",
+    accent: "#3b82f6",
+    accentHover: "#2563eb",
+    textPrimary: "#f2f2f2",
+    textMuted: "#8a8a8a",
+  },
+
   page: {
     minHeight: "100vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "#0B1120",
+    background: "#0a0a0a",
     padding: "20px",
   },
 
   card: {
     width: "100%",
     maxWidth: "700px",
-    background: "#111827",
+    background: "#121212",
     padding: "30px",
-    borderRadius: "15px",
-    color: "white",
-    border: "1px solid #1F2937",
+    borderRadius: "20px",
+    color: "#f2f2f2",
+    border: "1px solid #212121",
+  },
+
+  heading: {
+    margin: "0 0 8px",
+    fontSize: "24px",
+    fontWeight: "700",
+    color: "#f2f2f2",
   },
 
   subtitle: {
-    color: "#94A3B8",
+    color: "#8a8a8a",
     marginBottom: "20px",
+    fontSize: "14px",
   },
 
   grid: {
@@ -136,28 +191,29 @@ const styles = {
   },
 
   skill: {
-    border: "none",
-    color: "white",
+    border: "1px solid #262626",
+    color: "#f2f2f2",
     padding: "12px 18px",
     borderRadius: "25px",
     cursor: "pointer",
     fontSize: "14px",
+    transition: "background 0.15s ease, border-color 0.15s ease",
   },
 
   counter: {
-    color: "#CBD5E1",
+    color: "#a8a8a8",
     marginBottom: "20px",
+    fontSize: "13px",
   },
 
   button: {
     width: "100%",
     padding: "15px",
-    background: "#2563EB",
-    color: "white",
+    background: "#3b82f6",
+    color: "#fff",
     border: "none",
-    borderRadius: "10px",
+    borderRadius: "12px",
     fontSize: "16px",
     fontWeight: "bold",
-    cursor: "pointer",
   },
 };

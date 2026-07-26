@@ -13,72 +13,72 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebase/firebase";
 
-export async function getuserlogs() {
+export async function getUserLogs() {
   const q = query(
     collection(db, "logs"),
     where("ownerId", "==", auth.currentUser.uid),
-    orderby("updatedAt", "desc")
+    orderBy("updatedAt", "desc")
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function createlog(name) {
+export async function createLog(name) {
   const ref = await addDoc(collection(db, "logs"), {
     ownerId: auth.currentUser.uid,
     name,
     itemCount: 0,
-    createdAt: servertimestamp(),
-    updatedAt: servertimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   });
   return ref.id;
 }
 
-// saves a reference only — points back to the original chat/message,
-// no media is re-uploaded or duplicated. clicking it later just
+// Saves a reference only — points back to the original chat/message,
+// no media is re-uploaded or duplicated. Clicking it later just
 // navigates back to the original chat.
-export async function addreferencetolog(logid, message, chatid) {
+export async function addReferenceToLog(logId, message, chatId) {
   await addDoc(collection(db, "logItems"), {
-    logId: logid,
+    logId,
     ownerId: auth.currentUser.uid,
-    chatId: chatid,
+    chatId,
     messageId: message.id,
     type: message.mediaType || "text",
     text: message.text || "",
     mediaURL: message.mediaURL || null,
-    senderName: message.senderName || "unknown",
-    savedAt: servertimestamp(),
+    senderName: message.senderName || "Unknown",
+    savedAt: serverTimestamp(),
   });
 
-  await updatedoc(doc(db, "logs", logid), {
+  await updateDoc(doc(db, "logs", logId), {
     itemCount: increment(1),
-    updatedAt: servertimestamp(),
+    updatedAt: serverTimestamp(),
   });
 }
 
-export async function getlogitems(logid) {
+export async function getLogItems(logId) {
   const q = query(
     collection(db, "logItems"),
-    where("logId", "==", logid),
-    orderby("savedAt", "desc")
+    where("logId", "==", logId),
+    orderBy("savedAt", "desc")
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function deletelogitem(itemid, logid) {
-  await deletedoc(doc(db, "logItems", itemid));
-  await updatedoc(doc(db, "logs", logid), {
+export async function deleteLogItem(itemId, logId) {
+  await deleteDoc(doc(db, "logItems", itemId));
+  await updateDoc(doc(db, "logs", logId), {
     itemCount: increment(-1),
-    updatedAt: servertimestamp(),
+    updatedAt: serverTimestamp(),
   });
 }
 
-export async function deletelog(logid) {
-  const q = query(collection(db, "logItems"), where("logId", "==", logid));
+export async function deleteLog(logId) {
+  const q = query(collection(db, "logItems"), where("logId", "==", logId));
   const snap = await getDocs(q);
   for (const item of snap.docs) {
-    await deletedoc(item.ref);
+    await deleteDoc(item.ref);
   }
-  await deletedoc(doc(db, "logs", logid));
+  await deleteDoc(doc(db, "logs", logId));
 }

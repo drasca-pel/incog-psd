@@ -63,7 +63,6 @@ function PrivateRoute({ children }) {
 
       {[
         "/dashboard",
-        "/feed",
         "/my-broadcasts",
         "/alerts",
         "/broadcast",

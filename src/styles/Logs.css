@@ -1,80 +1,196 @@
-.logspage,
-.logdetailpage {
+.logsPage,
+.logDetailPage {
   min-height: 100vh;
   background: #0a0a0a;
   color: #f2f2f2;
-  padding: 20px 16px 40px;
+  padding: 20px 16px 90px;
 }
 
-.logspage h1,
-.logdetailpage h1 {
+.logsPageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin: 16px 0 20px;
+}
+
+.logsPageHeader h1,
+.logDetailPage h1 {
+  margin: 0;
   font-size: 24px;
 }
 
-.logsloading {
+.newLogBtn {
+  background: #f97316;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newLogBtn:hover {
+  background: #ea580c;
+}
+
+.newLogRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.newLogRow input {
+  flex: 1;
+  background: #121212;
+  border: 1px solid #232323;
+  color: #f2f2f2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.newLogConfirmBtn {
+  background: #f97316;
+  color: #fff;
+  border: none;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newLogConfirmBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.logsLoading {
   color: #8a8a8a;
   text-align: center;
   margin-top: 40px;
 }
 
-.logsgrid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.logsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
-.logcard {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #121212;
-  border: 1px solid #212121;
-  border-radius: 14px;
-  padding: 14px;
+.folderCard {
+  position: relative;
   cursor: pointer;
 }
 
-.logcardicon {
-  font-size: 22px;
+.folderTab {
+  width: 40%;
+  height: 12px;
+  background: #1c1c1c;
+  border: 1px solid #262626;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  margin-left: 6px;
 }
 
-.logcardinfo {
-  flex: 1;
+.folderBody {
+  position: relative;
+  background: #121212;
+  border: 1px solid #262626;
+  border-radius: 4px 12px 12px 12px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background 0.15s ease;
 }
 
-.logcardinfo h3 {
+.folderCard:hover .folderBody {
+  background: #171717;
+}
+
+.folderIcon {
+  font-size: 30px;
+}
+
+.folderInfo h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
+  color: #f2f2f2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.logcardinfo span {
-  font-size: 12px;
+.folderInfo span {
+  font-size: 11px;
   color: #8a8a8a;
 }
 
-.logdeletebtn {
+.folderMenuBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
-  font-size: 16px;
+  color: #a8a8a8;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  opacity: 0.7;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  z-index: 5;
 }
 
-.logitemslist {
+.folderMenuBtn:hover {
+  background: #1e1e1e;
+  color: #f2f2f2;
+}
+
+.folderMenuDropdown {
+  position: absolute;
+  top: 36px;
+  right: 6px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 20;
+  min-width: 140px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.folderMenuDropdown button {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 13px;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.folderMenuDropdown button:hover {
+  background: #232323;
+}
+
+.logItemsList {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.logitemcard {
+.logItemCard {
   background: #121212;
   border: 1px solid #212121;
   border-radius: 14px;
   padding: 12px;
 }
 
-.logitemheader {
+.logItemHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -82,36 +198,50 @@
   font-size: 13px;
 }
 
-.logitemdeletebtn {
+.logItemMenuWrapper {
+  position: relative;
+}
+
+.logItemMenuBtn {
   background: none;
   border: none;
+  color: #a8a8a8;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  opacity: 0.7;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
-.logitemimage {
+.logItemMenuBtn:hover {
+  background: #1e1e1e;
+  color: #f2f2f2;
+}
+
+.logItemImage {
   width: 100%;
   border-radius: 10px;
   cursor: pointer;
   margin-bottom: 6px;
 }
 
-.logitemvideo {
+.logItemVideo {
   width: 100%;
   border-radius: 10px;
   margin-bottom: 6px;
 }
 
-.logitemtext {
+.logItemText {
   font-size: 14px;
   color: #d0d0d0;
   margin: 4px 0;
 }
 
-.logitemjumpbtn {
+.logItemJumpBtn {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
-  color: #3b82f6;
+  color: #f97316;
   font-size: 12px;
   padding: 6px 10px;
   border-radius: 8px;

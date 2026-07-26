@@ -1,110 +1,110 @@
-import react, { useEffect, useState } from "react";
-import { getuserlogs, createlog, addreferencetolog } from "../utils/logsService";
+import React, { useEffect, useState } from "react";
+import { getUserLogs, createLog, addReferenceToLog } from "../utils/logsService";
 import ConfirmModal from "./ConfirmModal";
 import "../styles/LogPicker.css";
 
-export default function logpicker({ message, chatId, onClose }) {
-  const [logs, setlogs] = useState([]);
-  const [loading, setloading] = useState(true);
-  const [newlogname, setnewlogname] = useState("");
-  const [creating, setcreating] = useState(false);
-  const [successmodal, setsuccessmodal] = useState(false);
+export default function LogPicker({ message, chatId, onClose }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newLogName, setNewLogName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   useEffect(() => {
-    loadlogs();
+    loadLogs();
   }, []);
 
-  async function loadlogs() {
+  async function loadLogs() {
     try {
-      const data = await getuserlogs();
-      setlogs(data);
+      const data = await getUserLogs();
+      setLogs(data);
     } catch (err) {
-      console.error("error loading logs:", err);
+      console.error("Error loading logs:", err);
     }
-    setloading(false);
+    setLoading(false);
   }
 
-  async function handlesavetolog(logid) {
+  async function handleSaveToLog(logId) {
     try {
-      await addreferencetolog(logid, message, chatId);
-      setsuccessmodal(true);
+      await addReferenceToLog(logId, message, chatId);
+      setSuccessModal(true);
     } catch (err) {
-      console.error("error saving to log:", err);
+      console.error("Error saving to log:", err);
     }
   }
 
-  async function handlecreateandsave() {
-    if (!newlogname.trim()) return;
-    setcreating(true);
+  async function handleCreateAndSave() {
+    if (!newLogName.trim()) return;
+    setCreating(true);
     try {
-      const logid = await createlog(newlogname.trim());
-      await addreferencetolog(logid, message, chatId);
-      setsuccessmodal(true);
+      const logId = await createLog(newLogName.trim());
+      await addReferenceToLog(logId, message, chatId);
+      setSuccessModal(true);
     } catch (err) {
-      console.error("error creating log:", err);
+      console.error("Error creating log:", err);
     }
-    setcreating(false);
+    setCreating(false);
   }
 
   return (
     <>
-      <div className="logpickeroverlay" onClick={onClose}>
-        <div className="logpickerbox" onClick={(e) => e.stopPropagation()}>
-          <h3>add to log</h3>
+      <div className="logPickerOverlay" onClick={onClose}>
+        <div className="logPickerBox" onClick={(e) => e.stopPropagation()}>
+          <h3>Add to Log</h3>
 
-          <div className="logcreaterow">
+          <div className="logCreateRow">
             <input
               type="text"
-              placeholder="new log name"
-              value={newlogname}
-              onChange={(e) => setnewlogname(e.target.value)}
+              placeholder="New log name"
+              value={newLogName}
+              onChange={(e) => setNewLogName(e.target.value)}
             />
             <button
-              className="logcreatebtn"
-              disabled={creating || !newlogname.trim()}
-              onClick={handlecreateandsave}
+              className="logCreateBtn"
+              disabled={creating || !newLogName.trim()}
+              onClick={handleCreateAndSave}
             >
-              create & save
+              Create & Save
             </button>
           </div>
 
-          <div className="logdivider">or add to existing</div>
+          <div className="logDivider">or add to existing</div>
 
-          <div className="loglist">
+          <div className="logList">
             {loading ? (
-              <p className="logemptytext">loading logs...</p>
+              <p className="logEmptyText">Loading logs...</p>
             ) : logs.length === 0 ? (
-              <p className="logemptytext">no logs yet — create one above.</p>
+              <p className="logEmptyText">No logs yet — create one above.</p>
             ) : (
               logs.map((log) => (
                 <button
                   key={log.id}
-                  className="loglistitem"
-                  onClick={() => handlesavetolog(log.id)}
+                  className="logListItem"
+                  onClick={() => handleSaveToLog(log.id)}
                 >
                   <span>{log.name}</span>
-                  <span className="logitemcount">{log.itemCount || 0}</span>
+                  <span className="logItemCount">{log.itemCount || 0}</span>
                 </button>
               ))
             )}
           </div>
 
-          <button className="logcancelbtn" onClick={onClose}>cancel</button>
+          <button className="logCancelBtn" onClick={onClose}>Cancel</button>
         </div>
       </div>
 
       <ConfirmModal
-        isOpen={successmodal}
-        title="saved"
-        message="this item has been added to your log."
-        confirmText="ok"
+        isOpen={successModal}
+        title="Saved"
+        message="This item has been added to your log."
+        confirmText="OK"
         type="info"
         onClose={() => {
-          setsuccessmodal(false);
+          setSuccessModal(false);
           onClose();
         }}
         onConfirm={() => {
-          setsuccessmodal(false);
+          setSuccessModal(false);
           onClose();
         }}
       />
