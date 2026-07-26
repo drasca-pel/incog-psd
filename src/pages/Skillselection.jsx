@@ -43,8 +43,8 @@ export default function SkillSelection() {
     if (selected.includes(skill)) {
       setSelected(selected.filter((s) => s !== skill));
     } else {
-      if (selected.length >= 2) {
-        showInfo("Limit Reached", "You can only choose up to 2 options.");
+      if (selected.length >= 5) {
+        showInfo("Limit Reached", "You can only choose up to 5 options.");
         return;
       }
       setSelected([...selected, skill]);
@@ -79,7 +79,8 @@ export default function SkillSelection() {
         <h1 style={styles.heading}>Choose Your Skills</h1>
 
         <p style={styles.subtitle}>
-          Select up to 2 options you're interested in.
+          Select up to 5
+           options you're interested in.
         </p>
 
         <div style={styles.grid}>
@@ -103,7 +104,8 @@ export default function SkillSelection() {
         </div>
 
         <p style={styles.counter}>
-          {selected.length} / 2 Selected
+          {selected.length} / 5
+         Selected
         </p>
 
         <button
