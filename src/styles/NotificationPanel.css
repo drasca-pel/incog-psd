@@ -1,13 +1,13 @@
-.notifoverlay {
+.notifOverlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 998;
 }
 
-.notifpanel {
-  position: absolute;
-  top: 60px;
+.notifPanel {
+  position: fixed;
+  top: 70px;
   right: 16px;
   width: 320px;
   max-height: 420px;
@@ -21,7 +21,7 @@
   overflow: hidden;
 }
 
-.notifpanelheader {
+.notifPanelHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,13 +29,13 @@
   border-bottom: 1px solid #212121;
 }
 
-.notifpanelheader h3 {
+.notifPanelHeader h3 {
   margin: 0;
   font-size: 15px;
   color: #f2f2f2;
 }
 
-.notifclosebtn {
+.notifCloseBtn {
   background: none;
   border: none;
   color: #8a8a8a;
@@ -43,19 +43,19 @@
   font-size: 14px;
 }
 
-.notiflist {
+.notifList {
   overflow-y: auto;
   padding: 6px;
 }
 
-.notifempty {
+.notifEmpty {
   padding: 30px 16px;
   text-align: center;
   color: #6b6b6b;
   font-size: 13px;
 }
 
-.notifitem {
+.notifItem {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -64,11 +64,11 @@
   cursor: pointer;
 }
 
-.notifitem:hover {
+.notifItem:hover {
   background: #1a1a1a;
 }
 
-.notifdot {
+.notifDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -77,18 +77,18 @@
   flex-shrink: 0;
 }
 
-.notifcontent {
+.notifContent {
   flex: 1;
   min-width: 0;
 }
 
-.notifcontent strong {
+.notifContent strong {
   display: block;
   font-size: 13px;
   color: #f2f2f2;
 }
 
-.notifcontent p {
+.notifContent p {
   margin: 2px 0 0;
   font-size: 12px;
   color: #a0a0a0;
@@ -97,7 +97,7 @@
   white-space: nowrap;
 }
 
-.notiftime {
+.notifTime {
   font-size: 11px;
   color: #6b6b6b;
   flex-shrink: 0;

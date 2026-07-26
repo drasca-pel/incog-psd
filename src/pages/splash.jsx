@@ -33,7 +33,7 @@ export default function Splash() {
 const styles = {
   container: {
     height: "100vh",
-    backgroundColor: "#0B1120",
+    backgroundColor: "#000000",
     color: "#fff",
     display: "flex",
     flexDirection: "column",
@@ -56,7 +56,7 @@ const styles = {
 
   tagline: {
     marginTop: "12px",
-    color: "#CBD5E1",
+    color: "#888888",
     fontSize: "18px",
   },
 
@@ -76,7 +76,7 @@ const styles = {
   version: {
     position: "absolute",
     bottom: "30px",
-    color: "#64748B",
+    color: "#555555",
     fontSize: "14px",
   },
 };

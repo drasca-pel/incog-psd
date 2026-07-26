@@ -12,8 +12,6 @@
 
 }
 
-
-
 .createPostPage h1 {
 
   text-align: center;
@@ -23,8 +21,6 @@
   margin-bottom: 25px;
 
 }
-
-
 
 .backButton {
 
@@ -39,8 +35,6 @@
   cursor: pointer;
 
 }
-
-
 
 .createPostBox {
 
@@ -57,8 +51,6 @@
   padding: 20px;
 
 }
-
-
 
 .createPostBox textarea {
 
@@ -84,15 +76,11 @@
 
 }
 
-
-
 .createPostBox textarea::placeholder {
 
   color: #777;
 
 }
-
-
 
 .createPostBox input[type="file"] {
 
@@ -104,8 +92,6 @@
 
 }
 
-
-
 .createPostBox p {
 
   color: #aaa;
@@ -113,8 +99,6 @@
   margin-top: 15px;
 
 }
-
-
 
 .createPostBox button {
 
@@ -124,7 +108,7 @@
 
   padding: 14px;
 
-  background: #1677ff;
+  background: #3b82f6;
 
   color: white;
 
@@ -142,20 +126,40 @@
 
 }
 
-
-
 .createPostBox button:hover {
 
-  background: #0f5fd0;
+  background: #2563eb;
 
 }
-
-
 
 .createPostBox button:disabled {
 
   opacity: 0.6;
 
   cursor: not-allowed;
+
+}
+
+/* Preview Media */
+
+.previewMedia {
+
+  display: block;
+
+  max-width: 100%;
+
+  max-height: 400px;
+
+  width: auto;
+
+  height: auto;
+
+  margin: 20px auto;
+
+  border-radius: 12px;
+
+  object-fit: contain;
+
+  border: 1px solid #222;
 
 }

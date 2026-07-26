@@ -3,7 +3,8 @@ import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/fire
 import { auth, db } from "../firebase/firebase";
 
 export default function useNotifications() {
-  const [notifications, setNotifications] = useState([]);
+  const [chatNotifications, setChatNotifications] = useState([]);
+  const [activityNotifications, setActivityNotifications] = useState([]);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -14,14 +15,12 @@ export default function useNotifications() {
 
     const chatMap = new Map();
 
-    const buildList = async (snap) => {
+    const buildChatList = async (snap) => {
       for (const docSnap of snap.docs) {
         const data = docSnap.data();
-
         const myUnread = data.unreadCount?.[userId] || 0;
-        const hasUnread = myUnread > 0;
 
-        if (!hasUnread) {
+        if (myUnread <= 0) {
           chatMap.delete(docSnap.id);
           continue;
         }
@@ -39,8 +38,8 @@ export default function useNotifications() {
         }
 
         chatMap.set(docSnap.id, {
-          id: docSnap.id,
-          type: "message",
+          id: `chat-${docSnap.id}`,
+          category: "chat",
           title: senderName,
           preview: data.lastMessage || "New message",
           timestamp: data.updatedAt || data.createdAt || null,
@@ -49,18 +48,50 @@ export default function useNotifications() {
         });
       }
 
-      const list = Array.from(chatMap.values()).sort((a, b) => {
-        const ta = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : (a.timestamp || 0);
-        const tb = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : (b.timestamp || 0);
-        return tb - ta;
-      });
-      setNotifications(list);
+      setChatNotifications(Array.from(chatMap.values()));
     };
 
-    const unsub1 = onSnapshot(q1, buildList, (err) => console.error(err));
-    const unsub2 = onSnapshot(q2, buildList, (err) => console.error(err));
-    return () => { unsub1(); unsub2(); };
+    const unsub1 = onSnapshot(q1, buildChatList, (err) => console.error(err));
+    const unsub2 = onSnapshot(q2, buildChatList, (err) => console.error(err));
+
+    const notifQuery = query(
+      collection(db, "notifications"),
+      where("recipientId", "==", userId),
+      where("read", "==", false)
+    );
+
+    const unsub3 = onSnapshot(
+      notifQuery,
+      (snap) => {
+        const list = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            category: "activity",
+            title: data.title || "Notification",
+            preview: data.message || "",
+            timestamp: data.createdAt || null,
+            link: data.link || "/dashboard",
+            unreadCount: 1,
+          };
+        });
+        setActivityNotifications(list);
+      },
+      (err) => console.error("Notification listener error:", err)
+    );
+
+    return () => {
+      unsub1();
+      unsub2();
+      unsub3();
+    };
   }, []);
+
+  const notifications = [...chatNotifications, ...activityNotifications].sort((a, b) => {
+    const ta = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : (a.timestamp || 0);
+    const tb = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : (b.timestamp || 0);
+    return tb - ta;
+  });
 
   const totalUnread = notifications.reduce((sum, n) => sum + (n.unreadCount || 1), 0);
 

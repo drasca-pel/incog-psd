@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import { uploadToCloudinary } from "../services/cloudinary";
+import ConfirmModal from "../components/ConfirmModal";
 
 import {
   collection,
@@ -18,8 +19,11 @@ import MediaUpload from "../components/MediaUpload";
 
 import "../styles/Broadcast.css";
 
+const MAX_ACTIVE_BROADCASTS = 2;
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+
 export default function Broadcast() {
-  
+
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -28,24 +32,18 @@ export default function Broadcast() {
 
   const [loading, setLoading] = useState(false);
   const [userSkills, setUserSkills] = useState([]);
+  const [confirmModal, setConfirmModal] = useState(null);
 
   useEffect(() => {
     const loadUserSkills = async () => {
       if (!auth.currentUser) return;
 
       try {
-        const userRef = doc(
-          db,
-          "users",
-          auth.currentUser.uid
-        );
-
+        const userRef = doc(db, "users", auth.currentUser.uid);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          setUserSkills(
-            userSnap.data().skills || []
-          );
+          setUserSkills(userSnap.data().skills || []);
         }
       } catch (error) {
         console.error("Error loading user skills:", error);
@@ -54,14 +52,27 @@ export default function Broadcast() {
 
     loadUserSkills();
   }, []);
-    
-    
+
+  function showInfo(title, message) {
+    setConfirmModal({
+      title,
+      message,
+      confirmText: "OK",
+      type: "info",
+      action: () => setConfirmModal(null),
+    });
+  }
 
   async function createBroadcast(e) {
     e.preventDefault();
 
     if (!title || !description || !skill) {
-      alert("Please fill in all required fields.");
+      showInfo("Missing Fields", "Please fill in all required fields.");
+      return;
+    }
+
+    if (media?.file && media.file.size > MAX_UPLOAD_BYTES) {
+      showInfo("File Too Large", "Attachments must be 25MB or smaller. Please choose a smaller file.");
       return;
     }
 
@@ -76,30 +87,26 @@ export default function Broadcast() {
 
       const existing = await getDocs(q);
 
-      if (existing.size >= 6) {
-        alert(
-          "You already have active broadcasts. Complete one before creating another."
+      if (existing.size >= MAX_ACTIVE_BROADCASTS) {
+        showInfo(
+          "Limit Reached",
+          `You already have ${MAX_ACTIVE_BROADCASTS} active broadcasts. Complete one before creating another.`
         );
-
         setLoading(false);
         return;
-      } 
-      
+      }
+
       let uploadedMedia = null;
 
       if (media) {
-        uploadedMedia = await uploadToCloudinary(
-          media.file
-        );
+        uploadedMedia = await uploadToCloudinary(media.file);
       }
-           
-     
+
       const broadcastRef = await addDoc(
         collection(db, "broadcasts"),
         {
           creatorId: auth.currentUser.uid,
-          creatorName:
-            auth.currentUser.displayName || "INCOG User",
+          creatorName: auth.currentUser.displayName || "INCOG User",
 
           title,
           description,
@@ -112,10 +119,10 @@ export default function Broadcast() {
 
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          
+
           accepted: false,
           acceptedBy: null,
-          interestedCandidate: [],
+          interestedCandidates: [],
 
           expiresIn: 7,
 
@@ -133,7 +140,6 @@ export default function Broadcast() {
         }
       );
 
-      // AUTOMATICALLY CREATE CORRESPONDING WORKSPACE FOR THIS BROADCAST
       await addDoc(collection(db, "workspaces"), {
         broadcastId: broadcastRef.id,
         creatorId: auth.currentUser.uid,
@@ -153,32 +159,19 @@ export default function Broadcast() {
       const usersSnapshot = await getDocs(usersQuery);
 
       for (const userDoc of usersSnapshot.docs) {
-
         if (userDoc.id === auth.currentUser.uid) continue;
 
         await addDoc(collection(db, "alerts"), {
-
           receiverId: userDoc.id,
-
           creatorId: auth.currentUser.uid,
-
-          creatorName:
-            auth.currentUser.displayName || "INCOG User",
-
+          creatorName: auth.currentUser.displayName || "INCOG User",
           broadcastId: broadcastRef.id,
-
           title: title,
-
           group: skill,
-
           status: "unread",
-
           createdAt: serverTimestamp(),
-
         });
-
       }
-
 
       setTitle("");
       setDescription("");
@@ -186,7 +179,7 @@ export default function Broadcast() {
       setMedia(null);
       navigate("/my-broadcasts");
     } catch (error) {
-      alert(error.message);
+      showInfo("Something Went Wrong", error.message);
     }
 
     setLoading(false);
@@ -196,10 +189,7 @@ export default function Broadcast() {
     <div className="broadcastPage">
       <div className="broadcastContainer">
         <div className="broadcastCard">
-          <button
-            className="backButton"
-            onClick={() => navigate(-1)}
-          >
+          <button className="backButton" onClick={() => navigate(-1)}>
             ←
           </button>
           <h1>Create Broadcast</h1>
@@ -209,9 +199,7 @@ export default function Broadcast() {
           </p>
 
           <form onSubmit={createBroadcast}>
-            <label className="inputLabel">
-              Broadcast Title
-            </label>
+            <label className="inputLabel">Broadcast Title</label>
 
             <input
               className="broadcastInput"
@@ -220,9 +208,7 @@ export default function Broadcast() {
               onChange={(e) => setTitle(e.target.value)}
             />
 
-            <label className="inputLabel">
-              Problem Description
-            </label>
+            <label className="inputLabel">Problem Description</label>
 
             <textarea
               className="broadcastTextarea"
@@ -231,18 +217,14 @@ export default function Broadcast() {
               onChange={(e) => setDescription(e.target.value)}
             />
 
-            <label className="inputLabel">
-              Broadcast Group
-            </label>
+            <label className="inputLabel">Broadcast Group</label>
 
             <select
               className="broadcastInput"
               value={skill}
               onChange={(e) => setSkill(e.target.value)}
             >
-              <option value="">
-                Select Broadcast Group
-              </option>
+              <option value="">Select Broadcast Group</option>
 
               {userSkills.length > 0 ? (
                 userSkills.map((item) => (
@@ -251,38 +233,32 @@ export default function Broadcast() {
                   </option>
                 ))
               ) : (
-                <option disabled>
-                  No groups available
-                </option>
+                <option disabled>No groups available</option>
               )}
             </select>
 
-            <label className="inputLabel">
-              Attachment (Optional)
-            </label>
+            <label className="inputLabel">Attachment (Optional, max 25MB)</label>
 
-            <MediaUpload
-              onUpload={(file) => setMedia(file)}
-            />
+            <MediaUpload onUpload={(file) => setMedia(file)} />
 
-           <button
-              className="broadcastButton"
-              disabled={loading}
-              type="submit"
-            >
+            <button className="broadcastButton" disabled={loading} type="submit">
               {loading ? "Publishing..." : "Publish Broadcast"}
-            </button>
-
-            <button
-              className="createVocalsButton"
-              disabled={loading}
-              type="submit"
-            >
-              {loading ? "Creating..." : "Create New Vocals"}
             </button>
           </form>
         </div>
       </div>
+
+      {confirmModal && (
+        <ConfirmModal
+          isOpen={true}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          type={confirmModal.type || "confirm"}
+          onConfirm={confirmModal.action}
+          onClose={() => setConfirmModal(null)}
+        />
+      )}
     </div>
   );
 }

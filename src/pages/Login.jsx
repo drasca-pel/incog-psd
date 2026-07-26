@@ -69,7 +69,7 @@ export default function Login() {
             type="email"
             placeholder="Enter your email"
             value={email}
-            onChange={(e)=>setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
@@ -80,15 +80,16 @@ export default function Login() {
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
             value={password}
-            onChange={(e)=>setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           <div style={styles.options}>
-            <label>
+            <label style={styles.checkboxLabel}>
               <input
                 type="checkbox"
-                onChange={()=>setShowPassword(!showPassword)}
+                onChange={() => setShowPassword(!showPassword)}
+                style={styles.checkbox}
               />
               Show Password
             </label>
@@ -113,7 +114,7 @@ export default function Login() {
 
         <Button
           variant="secondary"
-          onClick={()=>navigate("/register")}
+          onClick={() => navigate("/register")}
         >
           Create Account
         </Button>
@@ -123,63 +124,84 @@ export default function Login() {
   );
 }
 
-const styles={
+const styles = {
+  page: {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#000000",
+    padding: "20px"
+  },
 
-page:{
-minHeight:"100vh",
-display:"flex",
-justifyContent:"center",
-alignItems:"center",
-background:"#0B1120",
-padding:"20px"
-},
+  card: {
+    width: "100%",
+    maxWidth: "420px",
+    background: "#0B0B0B",
+    padding: "35px",
+    borderRadius: "18px",
+    border: "1px solid #1A1A1A",
+    boxShadow: "0 20px 50px rgba(0, 0, 0, 0.9)"
+  },
 
-card:{
-width:"100%",
-maxWidth:"420px",
-background:"#111827",
-padding:"35px",
-borderRadius:"15px",
-border:"1px solid #1F2937"
-},
+  logo: {
+    textAlign: "center",
+    fontSize: "40px",
+    color: "#38BDF8",
+    marginBottom: "10px",
+    fontWeight: "800",
+    letterSpacing: "1px"
+  },
 
-logo:{
-textAlign:"center",
-fontSize:"40px",
-color:"#38BDF8",
-marginBottom:"10px"
-},
+  subtitle: {
+    textAlign: "center",
+    color: "#888888",
+    marginBottom: "25px",
+    fontSize: "14px"
+  },
 
-subtitle:{
-textAlign:"center",
-color:"#94A3B8",
-marginBottom:"25px"
-},
+  options: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    margin: "15px 0 20px",
+    fontSize: "14px"
+  },
 
-options:{
-display:"flex",
-justifyContent:"space-between",
-alignItems:"center",
-margin:"15px 0 20px"
-},
+  checkboxLabel: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    color: "#AAAAAA",
+    cursor: "pointer"
+  },
 
-divider:{
-textAlign:"center",
-margin:"20px 0",
-color:"#64748B"
-},
+  checkbox: {
+    accentColor: "#38BDF8",
+    cursor: "pointer"
+  },
 
-link:{
-color:"#38BDF8",
-textDecoration:"none"
-},
+  divider: {
+    textAlign: "center",
+    margin: "20px 0",
+    color: "#555555",
+    fontSize: "13px",
+    letterSpacing: "1px"
+  },
 
-error:{
-background:"#7F1D1D",
-padding:"10px",
-borderRadius:"8px",
-color:"#FECACA",
-marginBottom:"20px"
-}
+  link: {
+    color: "#38BDF8",
+    textDecoration: "none"
+  },
 
+  error: {
+    background: "rgba(127, 29, 29, 0.4)",
+    border: "1px solid #7F1D1D",
+    padding: "12px",
+    borderRadius: "10px",
+    color: "#FECACA",
+    marginBottom: "20px",
+    fontSize: "14px",
+    textAlign: "center"
+  }
 };

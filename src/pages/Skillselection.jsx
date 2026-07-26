@@ -4,7 +4,7 @@ import { auth, db } from "../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 
 const skills = [
-  "Software Development",
+  "Software Developme",
   "Web Development",
   "Mobile Development",
   "Artificial Intelligence",
