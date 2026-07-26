@@ -25,6 +25,7 @@ import { checkExpiredBroadcasts } from "./utils/checkExpiredBroadcasts";
 import InterestedCandidates from "./pages/InterestedCandidates";
 import Logs from "./pages/Logs";
 import LogDetail from "./pages/LogDetail";
+import InstallPrompt from "./components/InstallPrompt";
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
@@ -74,9 +75,13 @@ function PrivateRoute({ children }) {
 }
 
 export default function App() {
+
   return (
-    <Router>
-      <Routes>
+    <>
+      <InstallPrompt />
+
+      <Router>
+        <Routes>
         {/* Public */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
@@ -216,6 +221,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
+    </>
   );
 }
 
