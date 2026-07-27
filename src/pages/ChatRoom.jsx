@@ -353,16 +353,19 @@ export default function ChatRoom() {
           }}
         />
 
-        <button
-          className={`voiceButton ${isRecording ? "recording" : ""}`}
-          type="button"
-          onPointerDown={startRecording}
-          onPointerUp={stopRecording}
-          onPointerCancel={stopRecording}
-          title="Hold to record, release to preview"
-        >
-          {isRecording ? "🔴" : "🎤"}
-        </button>
+      <button
+  className={`voiceButton ${isRecording ? "recording" : ""}`}
+  type="button"
+  onPointerDown={startRecording}
+  onPointerUp={stopRecording}
+  onPointerCancel={stopRecording}
+  onPointerLeave={stopRecording}
+  onMouseUp={stopRecording}
+  onTouchEnd={stopRecording}
+  title="Hold to record, release to preview"
+>
+  {isRecording ? "🔴" : "🎤"}
+</button>
 
         <button
           className="sendButton"

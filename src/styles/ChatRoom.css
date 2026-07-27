@@ -1,4 +1,4 @@
-.chatloading {
+.chatLoading {
   min-height: 100vh;
   background: #0a0a0a;
   color: #8a8a8a;
@@ -8,17 +8,16 @@
   font-size: 15px;
 }
 
-.chatroom {
+.chatRoom {
   min-height: 100vh;
   background: #0a0a0a;
   color: #f2f2f2;
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, blinkmacsystemfont, "segoe ui", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* header */
-.chatheader {
+.chatHeader {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -30,7 +29,7 @@
   z-index: 10;
 }
 
-.chatheader .backbutton {
+.chatHeader .backButton {
   background: #1a1a1a;
   border: 1px solid #262626;
   color: #f2f2f2;
@@ -45,11 +44,11 @@
   transition: background 0.2s ease;
 }
 
-.chatheader .backbutton:hover {
+.chatHeader .backButton:hover {
   background: #222222;
 }
 
-.chatheaderinfo h2 {
+.chatHeaderInfo h2 {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
@@ -58,12 +57,12 @@
   gap: 6px;
 }
 
-.chatheaderinfo small {
+.chatHeaderInfo small {
   color: #7d7d7d;
   font-size: 12px;
 }
 
-.onlinedot {
+.onlineDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -71,21 +70,20 @@
   display: inline-block;
 }
 
-.onlinedotactive {
+.onlineDotActive {
   background: #22c55e;
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
 }
 
-.statusonline {
+.statusOnline {
   color: #22c55e;
 }
 
-.statusoffline {
+.statusOffline {
   color: #7d7d7d;
 }
 
-/* message list */
-.messagelist {
+.messageList {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
@@ -94,14 +92,13 @@
   gap: 8px;
 }
 
-.emptymessages {
+.emptyMessages {
   margin: auto;
   color: #6b6b6b;
   font-size: 14px;
 }
 
-/* reply bar */
-.replybar {
+.replyBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -112,12 +109,12 @@
   margin: 0 12px 8px;
 }
 
-.replybar strong {
+.replyBar strong {
   font-size: 12px;
   color: #3b82f6;
 }
 
-.replybar p {
+.replyBar p {
   margin: 2px 0 0;
   font-size: 13px;
   color: #b0b0b0;
@@ -127,7 +124,7 @@
   max-width: 220px;
 }
 
-.replybar button {
+.replyBar button {
   background: none;
   border: none;
   color: #8a8a8a;
@@ -135,9 +132,8 @@
   font-size: 14px;
 }
 
-/* media preview overlay */
-.mediapreviewcontainer,
-.audiopreviewcontainer {
+.mediaPreviewContainer,
+.audioPreviewContainer {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -146,21 +142,21 @@
   border-top: 1px solid #232323;
 }
 
-.previewimage {
+.previewImage {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 8px;
 }
 
-.previewvideo {
+.previewVideo {
   width: 80px;
   height: 60px;
   border-radius: 8px;
   background: #000;
 }
 
-.previewfile {
+.previewFile {
   width: 60px;
   height: 60px;
   background: #1e1e1e;
@@ -173,7 +169,7 @@
   color: #ccc;
 }
 
-.previewfilename {
+.previewFileName {
   flex: 1;
   font-size: 14px;
   color: #d0d0d0;
@@ -182,8 +178,8 @@
   white-space: nowrap;
 }
 
-.previewcancelbtn,
-.previewsendbtn {
+.previewCancelBtn,
+.previewSendBtn {
   border: none;
   padding: 6px 14px;
   border-radius: 16px;
@@ -194,35 +190,34 @@
   transition: opacity 0.15s ease;
 }
 
-.previewcancelbtn {
+.previewCancelBtn {
   background: #3a1414;
   color: #ff6b6b;
 }
 
-.previewcancelbtn:hover {
+.previewCancelBtn:hover {
   background: #4a1a1a;
 }
 
-.previewsendbtn {
+.previewSendBtn {
   background: #3b82f6;
 }
 
-.previewsendbtn:hover {
+.previewSendBtn:hover {
   background: #2563eb;
 }
 
-.audiopreviewplayer {
+.audioPreviewPlayer {
   height: 34px;
   flex: 1;
 }
 
-.audiopreviewduration {
+.audioPreviewDuration {
   font-size: 12px;
   color: #8a8a8a;
 }
 
-/* recording indicator */
-.recordingindicator {
+.recordingIndicator {
   position: absolute;
   top: -32px;
   left: 15px;
@@ -232,10 +227,10 @@
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
+  z-index: 5;
 }
 
-/* input area */
-.chatinputarea {
+.chatInputArea {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -246,9 +241,9 @@
   overflow: hidden;
 }
 
-.chatinput {
+.chatInput {
   flex: 1;
-  min-width:0;
+  min-width: 0;
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
   color: #f2f2f2;
@@ -259,21 +254,21 @@
   transition: border-color 0.2s ease;
 }
 
-.chatinput:focus {
+.chatInput:focus {
   border-color: #3b82f6;
 }
 
-.chatinput::placeholder {
+.chatInput::placeholder {
   color: #666666;
 }
 
-.chatinput:disabled {
+.chatInput:disabled {
   opacity: 0.5;
 }
 
-.mediauploadbutton,
-.voicebutton,
-.sendbutton {
+.mediaUploadButton,
+.voiceButton,
+.sendButton {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
   color: #f2f2f2;
@@ -289,18 +284,24 @@
   flex-shrink: 0;
 }
 
-.mediauploadbutton:hover,
-.voicebutton:hover {
+.mediaUploadButton:hover,
+.voiceButton:hover {
   background: #232323;
 }
 
-.voicebutton.recording {
+.voiceButton {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.voiceButton.recording {
   background: #ff4d4d;
   border-color: #ff4d4d;
   transform: scale(1.05);
 }
 
-.sendbutton {
+.sendButton {
   background: #3b82f6;
   border-color: #3b82f6;
   width: auto;
@@ -310,12 +311,12 @@
   font-weight: 600;
 }
 
-.sendbutton:hover {
+.sendButton:hover {
   background: #2563eb;
 }
 
-.sendbutton:disabled,
-.mediauploadbutton:disabled {
+.sendButton:disabled,
+.mediaUploadButton:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
