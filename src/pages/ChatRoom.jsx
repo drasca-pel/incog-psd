@@ -1,4 +1,4 @@
-import react, { useEffect, useState, useRef, useReducer } from "react";
+import React, { useEffect, useState, useRef, useReducer } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -12,8 +12,6 @@ import LogPicker from "../components/LogPicker";
 
 import "../styles/ChatRoom.css";
 
-// works out who "the other person" is, regardless of whether this
-// chat was created via helperId/ownerId or members/participants
 function getOtherUserId(chat, currentUid) {
   if (!chat) return null;
   if (chat.helperId && chat.ownerId) {
@@ -24,16 +22,16 @@ function getOtherUserId(chat, currentUid) {
 }
 
 function formatLastSeen(timestamp) {
-  if (!timestamp) return "offline";
+  if (!timestamp) return "Offline";
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   const seconds = Math.floor((new Date() - date) / 1000);
 
-  if (seconds < 60) return "last seen just now";
+  if (seconds < 60) return "Last seen just now";
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `last seen ${minutes}m ago`;
+  if (minutes < 60) return `Last seen ${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `last seen ${hours}h ago`;
-  return "last seen a while ago";
+  if (hours < 24) return `Last seen ${hours}h ago`;
+  return "Last seen a while ago";
 }
 
 export default function ChatRoom() {
@@ -58,10 +56,10 @@ export default function ChatRoom() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
+  const stopRequestedRef = useRef(false);
 
   const fileInputRef = useRef(null);
 
-  // keeps "last seen Xm ago" ticking upward without a full reload
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const {
@@ -99,7 +97,7 @@ export default function ChatRoom() {
           }
         }
       } catch (err) {
-        console.error("error loading user profile:", err);
+        console.error("Error loading user profile:", err);
       }
     };
 
@@ -115,7 +113,6 @@ export default function ChatRoom() {
     return () => clearInterval(timer);
   }, []);
 
-  // mark any incoming message as read as soon as it's on screen
   useEffect(() => {
     if (!auth.currentUser || !messages.length) return;
 
@@ -139,9 +136,9 @@ export default function ChatRoom() {
 
   let statusText;
   if (otherUsersTyping) {
-    statusText = "typing...";
+    statusText = "Typing...";
   } else if (otherIsOnline) {
-    statusText = "online";
+    statusText = "Online";
   } else {
     statusText = formatLastSeen(otherLastSeen);
   }
@@ -173,6 +170,7 @@ export default function ChatRoom() {
     if (audioPreviewUrl) return;
     audioChunksRef.current = [];
     setRecordingDuration(0);
+    stopRequestedRef.current = false;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -198,9 +196,13 @@ export default function ChatRoom() {
       timerRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
+
+      if (stopRequestedRef.current) {
+        stopRecording();
+      }
     } catch (err) {
-      console.error("error accessing microphone:", err);
-      alert("could not access microphone. please check browser permissions.");
+      console.error("Error accessing microphone:", err);
+      alert("Could not access microphone. Please check browser permissions.");
     }
   };
 
@@ -209,6 +211,8 @@ export default function ChatRoom() {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       clearInterval(timerRef.current);
+    } else {
+      stopRequestedRef.current = true;
     }
   };
 
@@ -228,29 +232,29 @@ export default function ChatRoom() {
   };
 
   if (loading) {
-    return <div className="chatloading">loading chat...</div>;
+    return <div className="chatLoading">Loading chat...</div>;
   }
 
   return (
-    <div className="chatroom">
+    <div className="chatRoom">
 
-      <div className="chatheader">
-        <button className="backbutton" onClick={() => navigate(-1)}>←</button>
+      <div className="chatHeader">
+        <button className="backButton" onClick={() => navigate(-1)}>←</button>
 
-        <div className="chatheaderinfo">
+        <div className="chatHeaderInfo">
           <h2>
-            {chat?.projectTitle || "chat"}
-            <span className={`onlinedot ${otherIsOnline ? "onlinedotactive" : ""}`} />
+            {chat?.projectTitle || "Chat"}
+            <span className={`onlineDot ${otherIsOnline ? "onlineDotActive" : ""}`} />
           </h2>
-          <small className={otherIsOnline ? "statusonline" : "statusoffline"}>
+          <small className={otherIsOnline ? "statusOnline" : "statusOffline"}>
             {statusText}
           </small>
         </div>
       </div>
 
-      <div className="messagelist">
+      <div className="messageList">
         {messages.length === 0 ? (
-          <div className="emptymessages">no messages yet.</div>
+          <div className="emptyMessages">No messages yet.</div>
         ) : (
           messages.map((message) => {
             const isMine = message.senderId === auth.currentUser.uid;
@@ -275,46 +279,46 @@ export default function ChatRoom() {
       </div>
 
       {replyingTo && (
-        <div className="replybar">
+        <div className="replyBar">
           <div>
-            <strong>replying to {replyingTo.senderName}</strong>
-            <p>{replyingTo.text || replyingTo.fileName || "media"}</p>
+            <strong>Replying to {replyingTo.senderName}</strong>
+            <p>{replyingTo.text || replyingTo.fileName || "Media"}</p>
           </div>
           <button onClick={() => setReplyingTo(null)}>✕</button>
         </div>
       )}
 
       {mediaPreviewUrl && (
-        <div className="mediapreviewcontainer">
+        <div className="mediaPreviewContainer">
           {mediaFile?.type.startsWith("image/") ? (
-            <img src={mediaPreviewUrl} alt="preview" className="previewimage" />
+            <img src={mediaPreviewUrl} alt="preview" className="previewImage" />
           ) : mediaFile?.type.startsWith("video/") ? (
-            <video src={mediaPreviewUrl} controls className="previewvideo" />
+            <video src={mediaPreviewUrl} controls className="previewVideo" />
           ) : (
-            <div className="previewfile">📄 {mediaFile?.name}</div>
+            <div className="previewFile">📄 {mediaFile?.name}</div>
           )}
-          <span className="previewfilename">{mediaFile?.name}</span>
-          <button className="previewcancelbtn" onClick={cancelMediaPreview}>cancel</button>
-          <button className="previewsendbtn" onClick={confirmSendMedia}>send</button>
+          <span className="previewFileName">{mediaFile?.name}</span>
+          <button className="previewCancelBtn" onClick={cancelMediaPreview}>Cancel</button>
+          <button className="previewSendBtn" onClick={confirmSendMedia}>Send</button>
         </div>
       )}
 
       {audioPreviewUrl && (
-        <div className="audiopreviewcontainer">
-          <span>🎤 voice note</span>
-          <audio src={audioPreviewUrl} controls className="audiopreviewplayer" />
-          <span className="audiopreviewduration">
+        <div className="audioPreviewContainer">
+          <span>🎤 Voice Note</span>
+          <audio src={audioPreviewUrl} controls className="audioPreviewPlayer" />
+          <span className="audioPreviewDuration">
             0:{recordingDuration < 10 ? `0${recordingDuration}` : recordingDuration}
           </span>
-          <button className="previewcancelbtn" onClick={cancelVoicePreview}>❌ cancel</button>
-          <button className="previewsendbtn" onClick={confirmSendVoice}>✅ send</button>
+          <button className="previewCancelBtn" onClick={cancelVoicePreview}>❌ Cancel</button>
+          <button className="previewSendBtn" onClick={confirmSendVoice}>✅ Send</button>
         </div>
       )}
 
-      <div className="chatinputarea">
+      <div className="chatInputArea">
         {isRecording && (
-          <div className="recordingindicator">
-            🔴 recording... 0:{recordingDuration < 10 ? `0${recordingDuration}` : recordingDuration}
+          <div className="recordingIndicator">
+            🔴 Recording... 0:{recordingDuration < 10 ? `0${recordingDuration}` : recordingDuration}
           </div>
         )}
 
@@ -327,17 +331,17 @@ export default function ChatRoom() {
         />
 
         <button
-          className="mediauploadbutton"
+          className="mediaUploadButton"
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          title="upload media"
+          title="Upload Media"
         >
           📎
         </button>
 
         <input
-          className="chatinput"
-          placeholder={isRecording ? "recording voice note..." : "type a message..."}
+          className="chatInput"
+          placeholder={isRecording ? "Recording voice note..." : "Type a message..."}
           disabled={isRecording || audioPreviewUrl !== null}
           value={text}
           onChange={async (e) => {
@@ -350,22 +354,22 @@ export default function ChatRoom() {
         />
 
         <button
-          className={`voicebutton ${isRecording ? "recording" : ""}`}
+          className={`voiceButton ${isRecording ? "recording" : ""}`}
           type="button"
           onPointerDown={startRecording}
           onPointerUp={stopRecording}
           onPointerCancel={stopRecording}
-          title="hold to record, release to preview"
+          title="Hold to record, release to preview"
         >
           {isRecording ? "🔴" : "🎤"}
         </button>
 
         <button
-          className="sendbutton"
+          className="sendButton"
           disabled={audioPreviewUrl !== null}
           onClick={editingMessage ? updateMessage : sendMessage}
         >
-          {editingMessage ? "update" : "send"}
+          {editingMessage ? "Update" : "Send"}
         </button>
       </div>
 
@@ -413,9 +417,9 @@ export default function ChatRoom() {
 
       <ConfirmModal
         isOpen={showDeleteConfirm}
-        title="delete message"
-        message="delete this message permanently?"
-        confirmText="delete"
+        title="Delete Message"
+        message="Delete this message permanently?"
+        confirmText="Delete"
         onConfirm={async () => {
           await deleteMessage(selectedMessage);
           setShowDeleteConfirm(false);
@@ -429,9 +433,9 @@ export default function ChatRoom() {
 
       <ConfirmModal
         isOpen={showPermanentDeleteConfirm}
-        title="delete permanently"
-        message="this will remove this message completely."
-        confirmText="delete"
+        title="Delete Permanently"
+        message="This will remove this message completely."
+        confirmText="Delete"
         onConfirm={async () => {
           await permanentlyDeleteMessage(selectedMessage.id);
           setShowPermanentDeleteConfirm(false);

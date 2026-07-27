@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../firebase/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
+import { syncAlertsForSkills } from "../utils/alertsSync";
+
+// Same master list as SkillSelection.jsx. If you edit skills there,
+// update this list too so both stay in sync.
+const skills = [
+  "Software & Web Development",
+  "Artificial Intelligence",
+  "Embedded Systems & IOT",
+  "MATHEMATICS & PHYSICS",
+  "Electronics",
+  "Robotics",
+  "UI/UX Design",
+  "Graphic Design",
+  "Data Science",
+];
 
 export default function Settings() {
 
@@ -10,6 +25,9 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [savingSkills, setSavingSkills] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -55,6 +73,8 @@ export default function Settings() {
           portfolio: snap.data().portfolio || "",
 
         });
+
+        setSelectedSkills(snap.data().skills || []);
 
       }
 
@@ -110,6 +130,59 @@ export default function Settings() {
 
     setSaving(false);
 
+  }
+
+  function toggleSkill(skill) {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+    } else {
+      if (selectedSkills.length >= 5) {
+        setModalTitle("Limit Reached");
+        setModalMessage("You can only choose up to 5 skills.");
+        setModalType("info");
+        setModalOpen(true);
+        return;
+      }
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  }
+
+  async function saveSkills() {
+    if (selectedSkills.length === 0) {
+      setModalTitle("No Skills Selected");
+      setModalMessage("Please choose at least one skill.");
+      setModalType("info");
+      setModalOpen(true);
+      return;
+    }
+
+    setSavingSkills(true);
+
+    try {
+      await setDoc(
+        doc(db, "users", auth.currentUser.uid),
+        {
+          skills: selectedSkills,
+          profileCompleted: true,
+        },
+        { merge: true }
+      );
+
+      await syncAlertsForSkills(auth.currentUser.uid, selectedSkills);
+
+      setModalTitle("Success");
+      setModalMessage("Your skills have been updated.");
+      setModalType("success");
+      setModalOpen(true);
+    } catch (err) {
+      console.log(err);
+      setModalTitle("Error");
+      setModalMessage("Failed to update skills.");
+      setModalType("error");
+      setModalOpen(true);
+    }
+
+    setSavingSkills(false);
   }
 
   if (loading) {
@@ -224,6 +297,38 @@ export default function Settings() {
           }}
         >
           {saving ? "Saving..." : "Save Changes"}
+        </button>
+
+        <hr style={styles.line} />
+
+        <label style={styles.sectionLabel}>My Skills</label>
+        <p style={styles.sectionHint}>
+          Select up to 5 skills. {selectedSkills.length}/5 selected.
+        </p>
+
+        <div style={styles.skillGrid}>
+          {skills.map((skill) => (
+            <button
+              key={skill}
+              onClick={() => toggleSkill(skill)}
+              style={{
+                ...styles.skillPill,
+                background: selectedSkills.includes(skill) ? "#1976ff" : "#1a1a1a",
+                borderColor: selectedSkills.includes(skill) ? "#1976ff" : "#333",
+              }}
+            >
+              {skill}
+            </button>
+          ))}
+        </div>
+
+        <button
+          style={styles.saveButton}
+          onClick={() => {
+            if (!savingSkills) saveSkills();
+          }}
+        >
+          {savingSkills ? "Saving..." : "Save Skills"}
         </button>
 
         <hr style={styles.line} />
@@ -367,6 +472,34 @@ const styles = {
     borderRadius: "10px",
     resize: "vertical",
     outline: "none",
+  },
+
+  sectionLabel: {
+    display: "block",
+    fontWeight: "bold",
+    marginBottom: "4px",
+  },
+
+  sectionHint: {
+    color: "#888",
+    fontSize: "13px",
+    marginBottom: "12px",
+  },
+
+  skillGrid: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginBottom: "18px",
+  },
+
+  skillPill: {
+    border: "1px solid #333",
+    color: "#fff",
+    padding: "10px 16px",
+    borderRadius: "20px",
+    cursor: "pointer",
+    fontSize: "13px",
   },
 
   saveButton: {

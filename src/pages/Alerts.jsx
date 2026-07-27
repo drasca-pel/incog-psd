@@ -14,7 +14,8 @@ import {
 
 import { auth, db } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import { isBroadcastExpired } from "../utils/broadcastExpiry";
+import { isBroadcastExpired } from "../utils/broadcastExpired";
+import { syncAlertsForSkills } from "../utils/alertsSync";
 import ConfirmModal from "../components/ConfirmModal";
 
 import "../styles/Alerts.css";
@@ -46,7 +47,10 @@ export default function Alerts() {
       const snap = await getDoc(userRef);
 
       if (snap.exists()) {
-        setUserSkills(snap.data().skills || []);
+        const userSkillsList = snap.data().skills || [];
+        setUserSkills(userSkillsList);
+
+        await syncAlertsForSkills(auth.currentUser.uid, userSkillsList);
       }
     } catch (error) {
       console.error("Error loading skills:", error);
