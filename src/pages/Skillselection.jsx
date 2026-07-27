@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import ConfirmModal from "../components/ConfirmModal";
+import { syncAlertsForSkills } from "../utils/alertsSync";
 
 // The master list of all skills available on INCOG PSD.
 // Add, remove, or rename skills here — this is the single
