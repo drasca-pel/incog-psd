@@ -14,7 +14,7 @@ import {
 
 import { auth, db } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import { isBroadcastExpired } from "../utils/broadcastExpired";
+import { isBroadcastExpired } from "../utils/broadcastExpiry";
 import { syncAlertsForSkills } from "../utils/alertsSync";
 import ConfirmModal from "../components/ConfirmModal";
 
