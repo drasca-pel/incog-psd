@@ -59,6 +59,10 @@ export default function ChatRoom() {
   const stopRequestedRef = useRef(false);
 
   const fileInputRef = useRef(null);
+  
+  // Smart auto-scroll refs
+  const bottomRef = useRef(null);
+  const isInitialMount = useRef(true);
 
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
@@ -86,6 +90,27 @@ export default function ChatRoom() {
     permanentlyDeleteMessage,
     markChatRead,
   } = useChat(id);
+
+  // Smart WhatsApp-style auto-scroll effect respecting user scroll position and long messages
+  useEffect(() => {
+    const messageList = bottomRef.current?.parentElement;
+    if (!messageList) return;
+
+    const isInitial = isInitialMount.current;
+    
+    if (isInitial) {
+      isInitialMount.current = false;
+      bottomRef.current?.scrollIntoView({ behavior: "auto" });
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = messageList;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+
+    if (isNearBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -276,6 +301,7 @@ export default function ChatRoom() {
             );
           })
         )}
+        <div ref={bottomRef} />
       </div>
 
       {replyingTo && (
@@ -353,19 +379,19 @@ export default function ChatRoom() {
           }}
         />
 
-      <button
-  className={`voiceButton ${isRecording ? "recording" : ""}`}
-  type="button"
-  onPointerDown={startRecording}
-  onPointerUp={stopRecording}
-  onPointerCancel={stopRecording}
-  onPointerLeave={stopRecording}
-  onMouseUp={stopRecording}
-  onTouchEnd={stopRecording}
-  title="Hold to record, release to preview"
->
-  {isRecording ? "🔴" : "🎤"}
-</button>
+        <button
+          className={`voiceButton ${isRecording ? "recording" : ""}`}
+          type="button"
+          onPointerDown={startRecording}
+          onPointerUp={stopRecording}
+          onPointerCancel={stopRecording}
+          onPointerLeave={stopRecording}
+          onMouseUp={stopRecording}
+          onTouchEnd={stopRecording}
+          title="Hold to record, release to preview"
+        >
+          {isRecording ? "🔴" : "🎤"}
+        </button>
 
         <button
           className="sendButton"
