@@ -33,9 +33,84 @@ function isExpired(broadcast) {
     return false;
   }
 
-  return (
-    broadcast.expiresAt <= Date.now()
+  const expiresAt =
+    typeof broadcast.expiresAt === "number"
+      ? broadcast.expiresAt
+      : broadcast.expiresAt?.toMillis
+        ? broadcast.expiresAt.toMillis()
+        : null;
+
+  if (!expiresAt) {
+    return false;
+  }
+
+  return Date.now() >= expiresAt;
+}
+
+// =====================================================
+// MINI SHUFFLE
+// =====================================================
+// Keeps the alert list mostly in its normal order,
+// but gives the list a small amount of variation.
+// Newer alerts still generally stay near the top.
+// =====================================================
+
+function miniShuffle(alertList) {
+  const result = [...alertList];
+
+  if (result.length <= 1) {
+    return result;
+  }
+
+  // Only perform a few small swaps.
+  // This prevents the whole list from being randomized.
+
+  const swaps = Math.min(
+    2,
+    Math.floor(result.length / 2)
   );
+
+  for (let i = 0; i < swaps; i++) {
+    const firstIndex =
+      Math.floor(
+        Math.random() * result.length
+      );
+
+    // Keep the second position reasonably close
+    // to the first one.
+    const range = 2;
+
+    const minIndex = Math.max(
+      0,
+      firstIndex - range
+    );
+
+    const maxIndex = Math.min(
+      result.length - 1,
+      firstIndex + range
+    );
+
+    const secondIndex =
+      minIndex +
+      Math.floor(
+        Math.random() *
+          (maxIndex - minIndex + 1)
+      );
+
+    if (
+      firstIndex !== secondIndex
+    ) {
+      [
+        result[firstIndex],
+        result[secondIndex],
+      ] = [
+        result[secondIndex],
+        result[firstIndex],
+      ];
+    }
+  }
+
+  return result;
 }
 
 export default function Alerts() {
@@ -56,12 +131,17 @@ export default function Alerts() {
   const [confirmModal, setConfirmModal] =
     useState(null);
 
+  // =====================================================
+  // AUTH + ALERT LISTENER
+  // =====================================================
+
   useEffect(() => {
     let unsubscribe = null;
 
     const unsubscribeAuth =
       auth.onAuthStateChanged(
         async (user) => {
+
           if (unsubscribe) {
             unsubscribe();
             unsubscribe = null;
@@ -73,10 +153,14 @@ export default function Alerts() {
             return;
           }
 
-          await loadUserSkills(user.uid);
+          await loadUserSkills(
+            user.uid
+          );
 
           unsubscribe =
-            listenForAlerts(user.uid);
+            listenForAlerts(
+              user.uid
+            );
         }
       );
 
@@ -119,6 +203,7 @@ export default function Alerts() {
         uid,
         skills
       );
+
     } catch (error) {
       console.error(
         "Error loading skills:",
@@ -132,6 +217,7 @@ export default function Alerts() {
   // =====================================================
 
   function listenForAlerts(uid) {
+
     const alertQuery = query(
       collection(db, "alerts"),
       where(
@@ -148,12 +234,14 @@ export default function Alerts() {
     return onSnapshot(
       alertQuery,
       async (snapshot) => {
+
         const alertList = [];
 
         for (
           const alertDoc
           of snapshot.docs
         ) {
+
           const alert = {
             id: alertDoc.id,
             ...alertDoc.data(),
@@ -164,6 +252,7 @@ export default function Alerts() {
           }
 
           try {
+
             const broadcastSnap =
               await getDoc(
                 doc(
@@ -173,10 +262,14 @@ export default function Alerts() {
                 )
               );
 
-            // Broadcast has already been deleted.
+            // =================================================
+            // BROADCAST DELETED
+            // =================================================
+
             if (
               !broadcastSnap.exists()
             ) {
+
               try {
                 await deleteDoc(
                   alertDoc.ref
@@ -204,6 +297,7 @@ export default function Alerts() {
               broadcast.status !==
               "active"
             ) {
+
               try {
                 await deleteDoc(
                   alertDoc.ref
@@ -225,6 +319,7 @@ export default function Alerts() {
             if (
               isExpired(broadcast)
             ) {
+
               try {
                 await deleteDoc(
                   alertDoc.ref
@@ -238,6 +333,10 @@ export default function Alerts() {
 
               continue;
             }
+
+            // =================================================
+            // VALID ALERT
+            // =================================================
 
             alertList.push({
               ...alert,
@@ -259,45 +358,35 @@ export default function Alerts() {
               broadcastStatus:
                 broadcast.status,
             });
+
           } catch (error) {
+
             console.error(
               "Alert processing error:",
               error
             );
+
           }
         }
 
-        // ===================================================
-        // SHUFFLE
-        // ===================================================
+        // =====================================================
+        // MINI SHUFFLE
+        // =====================================================
+        //
+        // Firestore gives us newest first.
+        // miniShuffle() only makes small changes instead
+        // of completely randomizing the entire list.
+        // =====================================================
 
         const shuffled =
-          [...alertList];
-
-        for (
-          let i = shuffled.length - 1;
-          i > 0;
-          i--
-        ) {
-          const j =
-            Math.floor(
-              Math.random() *
-                (i + 1)
-            );
-
-          [
-            shuffled[i],
-            shuffled[j],
-          ] = [
-            shuffled[j],
-            shuffled[i],
-          ];
-        }
+          miniShuffle(alertList);
 
         setAlerts(shuffled);
         setLoading(false);
       },
+
       (error) => {
+
         console.error(
           "Alert listener error:",
           error
@@ -313,25 +402,34 @@ export default function Alerts() {
   // =====================================================
 
   function acceptAlert(alert) {
+
     setConfirmModal({
       title: "Open Broadcast?",
+
       message:
         "Do you want to view this broadcast?",
+
       confirmText: "View",
+
       type: "confirm",
 
       action: async () => {
+
         try {
+
           setConfirmModal(null);
 
           navigate(
             `/broadcast/${alert.broadcastId}`
           );
+
         } catch (error) {
+
           console.error(
             "Open broadcast error:",
             error
           );
+
         }
       },
     });
@@ -342,15 +440,22 @@ export default function Alerts() {
   // =====================================================
 
   function removeAlert(alertId) {
+
     setConfirmModal({
+
       title: "Remove Alert",
+
       message:
         "Are you sure you want to remove this alert?",
+
       confirmText: "Remove",
+
       type: "confirm",
 
       action: async () => {
+
         try {
+
           await deleteDoc(
             doc(
               db,
@@ -360,18 +465,25 @@ export default function Alerts() {
           );
 
           setConfirmModal(null);
+
         } catch (error) {
+
           console.error(
             "Remove alert error:",
             error
           );
 
           setConfirmModal({
+
             title: "Removal Failed",
+
             message:
               "Unable to remove alert. Please try again.",
+
             confirmText: "OK",
+
             type: "info",
+
             action: () =>
               setConfirmModal(null),
           });
@@ -379,6 +491,10 @@ export default function Alerts() {
       },
     });
   }
+
+  // =====================================================
+  // FILTER ALERTS
+  // =====================================================
 
   const filteredAlerts =
     selectedSkill ===
@@ -390,9 +506,15 @@ export default function Alerts() {
             selectedSkill
         );
 
+  // =====================================================
+  // LOADING
+  // =====================================================
+
   if (loading) {
+
     return (
       <div className="alertsPage">
+
         <button
           className="backButton"
           onClick={() =>
@@ -405,9 +527,14 @@ export default function Alerts() {
         <h1>Alerts</h1>
 
         <p>Loading...</p>
+
       </div>
     );
   }
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <div className="alertsPage">
@@ -423,6 +550,10 @@ export default function Alerts() {
 
       <h1>Alerts</h1>
 
+      {/* =================================================
+          SKILL FILTER
+      ================================================= */}
+
       <select
         className="skillFilter"
         value={selectedSkill}
@@ -432,38 +563,52 @@ export default function Alerts() {
           )
         }
       >
+
         <option>
           All My Skills
         </option>
 
         {userSkills.map(
           (skill) => (
+
             <option
               key={skill}
               value={skill}
             >
               {skill}
             </option>
+
           )
         )}
+
       </select>
 
+      {/* =================================================
+          ALERT LIST
+      ================================================= */}
+
       {filteredAlerts.length === 0 ? (
+
         <p>
           No alerts available.
         </p>
+
       ) : (
+
         filteredAlerts.map(
           (alert) => (
+
             <div
               key={alert.id}
               className="alertCard"
             >
+
               <h3>
                 {alert.title}
               </h3>
 
               <div className="alertMeta">
+
                 <span>
                   {alert.creatorName}
                 </span>
@@ -471,9 +616,11 @@ export default function Alerts() {
                 <span>
                   Skill: {alert.skill}
                 </span>
+
               </div>
 
               <div className="subjectStatus">
+
                 <h4>
                   New Request
                 </h4>
@@ -481,6 +628,7 @@ export default function Alerts() {
                 <p>
                   Someone needs your help.
                 </p>
+
               </div>
 
               <div className="alertButtons">
@@ -506,34 +654,49 @@ export default function Alerts() {
                 </button>
 
               </div>
+
             </div>
+
           )
         )
+
       )}
 
+      {/* =================================================
+          CONFIRM MODAL
+      ================================================= */}
+
       <ConfirmModal
+
         isOpen={Boolean(
           confirmModal
         )}
+
         title={
           confirmModal?.title
         }
+
         message={
           confirmModal?.message
         }
+
         confirmText={
           confirmModal?.confirmText
         }
+
         type={
           confirmModal?.type ||
           "confirm"
         }
+
         onConfirm={
           confirmModal?.action
         }
+
         onClose={() =>
           setConfirmModal(null)
         }
+
       />
 
     </div>

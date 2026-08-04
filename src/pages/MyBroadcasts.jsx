@@ -44,9 +44,7 @@ export default function MyBroadcasts() {
     }
 
     // Firestore Timestamp-like object
-    if (
-      typeof expiresAt.seconds === "number"
-    ) {
+    if (typeof expiresAt.seconds === "number") {
       return expiresAt.seconds * 1000;
     }
 
@@ -62,9 +60,7 @@ export default function MyBroadcasts() {
 
     const parsed = new Date(expiresAt).getTime();
 
-    return Number.isNaN(parsed)
-      ? null
-      : parsed;
+    return Number.isNaN(parsed) ? null : parsed;
   }
 
   // ============================================================
@@ -77,8 +73,7 @@ export default function MyBroadcasts() {
       where("broadcastId", "==", broadcastId)
     );
 
-    const alertsSnapshot =
-      await getDocs(alertsQuery);
+    const alertsSnapshot = await getDocs(alertsQuery);
 
     for (const alertDoc of alertsSnapshot.docs) {
       await deleteDoc(alertDoc.ref);
@@ -88,23 +83,18 @@ export default function MyBroadcasts() {
   // ============================================================
   // COMPLETELY DELETE BROADCAST
   //
-  // IMPORTANT:
-  // This deletes:
-  //   - alerts
-  //   - broadcast
+  // Deletes:
+  // - alerts
+  // - broadcast
   //
-  // It DOES NOT delete:
-  //   - chats
-  //   - workspaces
+  // Does NOT delete:
+  // - chats
+  // - workspaces
   // ============================================================
 
-  async function completelyDeleteBroadcast(
-    broadcastId
-  ) {
-    // Delete alerts belonging to this broadcast
+  async function completelyDeleteBroadcast(broadcastId) {
     await deleteBroadcastAlerts(broadcastId);
 
-    // Delete the broadcast itself
     await deleteDoc(
       doc(db, "broadcasts", broadcastId)
     );
@@ -114,12 +104,10 @@ export default function MyBroadcasts() {
   // HANDLE EXPIRED BROADCAST
   // ============================================================
 
-  async function handleExpiredBroadcast(
-    broadcast
-  ) {
+  async function handleExpiredBroadcast(broadcast) {
     try {
       // --------------------------------------------------------
-      // 1. Tell the broadcaster that it expired
+      // 1. Notify the broadcaster
       // --------------------------------------------------------
 
       await createNotification({
@@ -202,9 +190,8 @@ export default function MyBroadcasts() {
               broadcast
             );
           } catch (error) {
-            // If cleanup fails, don't silently remove it
-            // from the UI. Keep it visible so the user can
-            // still try again.
+            // If cleanup fails, keep it visible
+            // so the user can try again.
             validBroadcasts.push(broadcast);
           }
 
@@ -407,7 +394,13 @@ export default function MyBroadcasts() {
         My Broadcasts
       </h1>
 
+      {/* ======================================================
+          TABS
+      ====================================================== */}
+
       <div className="tabsContainer">
+
+        {/* ACTIVE */}
 
         <button
           className={`tabButton ${
@@ -422,6 +415,8 @@ export default function MyBroadcasts() {
           Active
         </button>
 
+        {/* IN PROGRESS */}
+
         <button
           className={`tabButton ${
             activeTab === "progress"
@@ -433,7 +428,15 @@ export default function MyBroadcasts() {
           }
         >
           In Progress
+
+          {progressBroadcasts.length > 0 && (
+            <span className="progressNotification">
+              {progressBroadcasts.length}
+            </span>
+          )}
         </button>
+
+        {/* COMPLETED */}
 
         <button
           className={`tabButton ${
@@ -579,8 +582,7 @@ export default function MyBroadcasts() {
               )
             )}
 
-            {activeBroadcasts.length ===
-              0 && (
+            {activeBroadcasts.length === 0 && (
               <div className="emptyState">
                 <h2>
                   No Active Broadcasts
@@ -660,8 +662,7 @@ export default function MyBroadcasts() {
               )
             )}
 
-            {progressBroadcasts.length ===
-              0 && (
+            {progressBroadcasts.length === 0 && (
               <div className="emptyState">
                 <h2>
                   No Broadcasts In Progress
@@ -714,8 +715,7 @@ export default function MyBroadcasts() {
               )
             )}
 
-            {completedBroadcasts.length ===
-              0 && (
+            {completedBroadcasts.length === 0 && (
               <div className="emptyState">
                 <h2>
                   No Completed Broadcasts
