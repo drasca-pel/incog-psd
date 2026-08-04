@@ -1,28 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-export default function MediaUpload({
-  onUpload,
-  existingMedia = null,
-}) {
+export default function MediaUpload({ onUpload, existingMedia = null }) {
   const [preview, setPreview] = useState(existingMedia);
-
-  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     setPreview(existingMedia);
   }, [existingMedia]);
 
+  // Clean up Object URLs when the preview changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (preview?.url && preview.url.startsWith("blob:")) {
+        URL.revokeObjectURL(preview.url);
+      }
+    };
+  }, [preview]);
+
   function handleChange(e) {
     const file = e.target.files[0];
-
     if (!file) return;
 
     if (file.size > 25 * 1024 * 1024) {
       alert("Maximum upload size is 25MB.");
+      if (e.target) e.target.value = "";
       return;
     }
 
-    setUploading(true);
+    // Revoke previous blob URL if replacing
+    if (preview?.url && preview.url.startsWith("blob:")) {
+      URL.revokeObjectURL(preview.url);
+    }
 
     const localPreview = {
       url: URL.createObjectURL(file),
@@ -32,25 +40,34 @@ export default function MediaUpload({
     };
 
     setPreview(localPreview);
-
     onUpload(localPreview);
-
-    setUploading(false);
   }
 
   function removeMedia() {
+    if (preview?.url && preview.url.startsWith("blob:")) {
+      URL.revokeObjectURL(preview.url);
+    }
     setPreview(null);
-
     onUpload(null);
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   }
+
+  // Helper to determine media type from object or URL string
+  const isImage =
+    preview?.type?.startsWith("image") ||
+    (typeof preview?.url === "string" && preview.url.match(/\.(jpeg|jpg|gif|png|webp)/i));
+
+  const isVideo =
+    preview?.type?.startsWith("video") ||
+    (typeof preview?.url === "string" && preview.url.match(/\.(mp4|webm|ogg|mov)/i));
 
   return (
     <div className="mediaUploadContainer">
-
       {preview ? (
         <div className="mediaPreviewCard">
-
-          {preview.type?.startsWith("image") && (
+          {isImage && (
             <img
               src={preview.url}
               alt="Preview"
@@ -58,7 +75,7 @@ export default function MediaUpload({
             />
           )}
 
-          {preview.type?.startsWith("video") && (
+          {isVideo && (
             <video
               src={preview.url}
               controls
@@ -66,18 +83,17 @@ export default function MediaUpload({
             />
           )}
 
-          {!preview.type?.startsWith("image") &&
-            !preview.type?.startsWith("video") && (
-              <div className="filePreview">
-                📎 {preview.name}
-              </div>
+          {!isImage && !isVideo && (
+            <div className="filePreview">
+              📎 {preview.name || "Attachment"}
+            </div>
           )}
 
           <div className="mediaActions">
-
             <label className="changeMediaBtn">
               Change Media
               <input
+                ref={inputRef}
                 hidden
                 type="file"
                 accept="image/*,video/*,.pdf,.doc,.docx"
@@ -92,34 +108,20 @@ export default function MediaUpload({
             >
               Remove Media
             </button>
-
           </div>
-
         </div>
-
       ) : (
-
         <label className="uploadMediaBtn">
-
           📎 Upload Attachment
-
           <input
+            ref={inputRef}
             hidden
             type="file"
             accept="image/*,video/*,.pdf,.doc,.docx"
             onChange={handleChange}
           />
-
         </label>
-
       )}
-
-      {uploading && (
-        <p className="uploadingText">
-          Uploading...
-        </p>
-      )}
-
     </div>
   );
 }
