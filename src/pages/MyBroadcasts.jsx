@@ -11,7 +11,10 @@ import {
   deleteDoc,
   updateDoc,
   serverTimestamp,
+  doc,
 } from "firebase/firestore";
+
+import { createNotification } from "../utils/notificationsService";
 
 import "../styles/MyBroadcasts.css";
 
@@ -28,58 +31,130 @@ export default function MyBroadcasts() {
     loadBroadcasts();
   }, []);
 
-  // --------------------------------------------------
-  // DELETE EVERYTHING BELONGING TO A BROADCAST
-  // --------------------------------------------------
+  // ============================================================
+  // GET EXPIRATION TIME
+  // ============================================================
 
-  async function deleteBroadcastCompletely(broadcastId) {
-    // 1. Delete broadcast
-    await deleteDoc(
-      collection(db, "broadcasts")
-    ).catch(() => {});
+  function getExpiresAtMillis(expiresAt) {
+    if (!expiresAt) return null;
 
-    // The above cannot delete a collection reference.
-    // The actual broadcast deletion happens below.
+    // Firestore Timestamp
+    if (typeof expiresAt.toMillis === "function") {
+      return expiresAt.toMillis();
+    }
+
+    // Firestore Timestamp-like object
+    if (
+      typeof expiresAt.seconds === "number"
+    ) {
+      return expiresAt.seconds * 1000;
+    }
+
+    // JavaScript number
+    if (typeof expiresAt === "number") {
+      return expiresAt;
+    }
+
+    // Date/string fallback
+    if (expiresAt instanceof Date) {
+      return expiresAt.getTime();
+    }
+
+    const parsed = new Date(expiresAt).getTime();
+
+    return Number.isNaN(parsed)
+      ? null
+      : parsed;
   }
 
-  async function completelyDeleteBroadcast(broadcastId) {
-    // Delete broadcast document
-    await deleteDoc(
-      require("firebase/firestore").doc(
-        db,
-        "broadcasts",
-        broadcastId
-      )
-    );
+  // ============================================================
+  // DELETE ALERTS FOR A BROADCAST
+  // ============================================================
 
-    // Delete all alerts belonging to it
+  async function deleteBroadcastAlerts(broadcastId) {
     const alertsQuery = query(
       collection(db, "alerts"),
       where("broadcastId", "==", broadcastId)
     );
 
-    const alertsSnapshot = await getDocs(alertsQuery);
+    const alertsSnapshot =
+      await getDocs(alertsQuery);
 
     for (const alertDoc of alertsSnapshot.docs) {
       await deleteDoc(alertDoc.ref);
     }
+  }
 
-    // Delete workspace(s)
-    const workspaceQuery = query(
-      collection(db, "workspaces"),
-      where("broadcastId", "==", broadcastId)
+  // ============================================================
+  // COMPLETELY DELETE BROADCAST
+  //
+  // IMPORTANT:
+  // This deletes:
+  //   - alerts
+  //   - broadcast
+  //
+  // It DOES NOT delete:
+  //   - chats
+  //   - workspaces
+  // ============================================================
+
+  async function completelyDeleteBroadcast(
+    broadcastId
+  ) {
+    // Delete alerts belonging to this broadcast
+    await deleteBroadcastAlerts(broadcastId);
+
+    // Delete the broadcast itself
+    await deleteDoc(
+      doc(db, "broadcasts", broadcastId)
     );
+  }
 
-    const workspaceSnapshot = await getDocs(workspaceQuery);
+  // ============================================================
+  // HANDLE EXPIRED BROADCAST
+  // ============================================================
 
-    for (const workspaceDoc of workspaceSnapshot.docs) {
-      await deleteDoc(workspaceDoc.ref);
+  async function handleExpiredBroadcast(
+    broadcast
+  ) {
+    try {
+      // --------------------------------------------------------
+      // 1. Tell the broadcaster that it expired
+      // --------------------------------------------------------
+
+      await createNotification({
+        recipientId: broadcast.creatorId,
+        type: "broadcast_expired",
+        title: "Broadcast Expired",
+        message: `"${broadcast.title}" has expired after 7 days.`,
+        link: "/my-broadcasts",
+      });
+
+      // --------------------------------------------------------
+      // 2. Delete alerts + broadcast
+      // --------------------------------------------------------
+
+      await completelyDeleteBroadcast(
+        broadcast.id
+      );
+
+      console.log(
+        "Expired broadcast deleted:",
+        broadcast.id
+      );
+    } catch (error) {
+      console.error(
+        "Error handling expired broadcast:",
+        error
+      );
+
+      throw error;
     }
   }
 
-  // --------------------------------------------------
-  // LOAD + CLEAN EXPIRED BROADCASTS
-  // --------------------------------------------------
+  // ============================================================
+  // LOAD BROADCASTS
+  // ============================================================
 
   async function loadBroadcasts() {
     if (!auth.currentUser) {
@@ -108,35 +183,47 @@ export default function MyBroadcasts() {
           ...broadcastDoc.data(),
         };
 
-        // ------------------------------------------------
-        // DELETE EXPIRED BROADCAST
-        // ------------------------------------------------
+        const expiresAtMillis =
+          getExpiresAtMillis(
+            broadcast.expiresAt
+          );
+
+        // ------------------------------------------------------
+        // EXPIRED ACTIVE BROADCAST
+        // ------------------------------------------------------
 
         if (
-          broadcast.expiresAt &&
-          broadcast.expiresAt <= now &&
-          broadcast.status === "active"
+          broadcast.status === "active" &&
+          expiresAtMillis &&
+          now >= expiresAtMillis
         ) {
           try {
-            await completelyDeleteBroadcast(
-              broadcast.id
+            await handleExpiredBroadcast(
+              broadcast
             );
-
-            continue;
           } catch (error) {
-            console.error(
-              "Error deleting expired broadcast:",
-              error
-            );
+            // If cleanup fails, don't silently remove it
+            // from the UI. Keep it visible so the user can
+            // still try again.
+            validBroadcasts.push(broadcast);
           }
+
+          continue;
         }
+
+        // ------------------------------------------------------
+        // NOT EXPIRED
+        // ------------------------------------------------------
 
         validBroadcasts.push(broadcast);
       }
 
       setBroadcasts(validBroadcasts);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Error loading broadcasts:",
+        error
+      );
 
       setConfirmModal({
         title: "Something Went Wrong",
@@ -144,22 +231,23 @@ export default function MyBroadcasts() {
           "Unable to load your broadcasts. Please try again.",
         confirmText: "OK",
         type: "info",
-        action: () => setConfirmModal(null),
+        action: () =>
+          setConfirmModal(null),
       });
     }
 
     setLoading(false);
   }
 
-  // --------------------------------------------------
+  // ============================================================
   // MANUAL DELETE
-  // --------------------------------------------------
+  // ============================================================
 
-  const handleDelete = async (id) => {
+  function handleDelete(id) {
     setConfirmModal({
       title: "Delete Broadcast?",
       message:
-        "Are you sure you want to delete this broadcast?",
+        "This will permanently delete the broadcast and its alerts. Existing chats will not be deleted.",
       confirmText: "Delete",
       type: "confirm",
 
@@ -169,13 +257,17 @@ export default function MyBroadcasts() {
 
           setBroadcasts((prev) =>
             prev.filter(
-              (broadcast) => broadcast.id !== id
+              (broadcast) =>
+                broadcast.id !== id
             )
           );
 
           setConfirmModal(null);
         } catch (error) {
-          console.error(error);
+          console.error(
+            "Delete broadcast error:",
+            error
+          );
 
           setConfirmModal({
             title: "Delete Failed",
@@ -184,55 +276,58 @@ export default function MyBroadcasts() {
               "Unable to delete broadcast.",
             confirmText: "OK",
             type: "info",
-            action: () => setConfirmModal(null),
+            action: () =>
+              setConfirmModal(null),
           });
         }
       },
     });
-  };
+  }
 
-  // --------------------------------------------------
+  // ============================================================
   // COMPLETE PROJECT
-  // --------------------------------------------------
+  // ============================================================
 
-  async function completeProject(broadcast) {
+  function completeProject(broadcast) {
     setConfirmModal({
       title: "Complete Project?",
       message:
-        "This will mark the project as complete and close it.",
+        "This will mark the project as completed and remove its active alerts. Existing chats will remain available.",
       confirmText: "Complete",
       type: "confirm",
 
       action: async () => {
         try {
+          // ----------------------------------------------------
+          // Mark broadcast completed
+          // ----------------------------------------------------
+
           await updateDoc(
-            require("firebase/firestore").doc(
+            doc(
               db,
               "broadcasts",
               broadcast.id
             ),
             {
               status: "completed",
-              completedAt: serverTimestamp(),
+              completedAt:
+                serverTimestamp(),
+              updatedAt:
+                serverTimestamp(),
             }
           );
 
-          // Remove alerts because project is no longer active.
-          const alertsQuery = query(
-            collection(db, "alerts"),
-            where(
-              "broadcastId",
-              "==",
-              broadcast.id
-            )
+          // ----------------------------------------------------
+          // Remove alerts
+          // ----------------------------------------------------
+
+          await deleteBroadcastAlerts(
+            broadcast.id
           );
 
-          const alertsSnapshot =
-            await getDocs(alertsQuery);
-
-          for (const alertDoc of alertsSnapshot.docs) {
-            await deleteDoc(alertDoc.ref);
-          }
+          // ----------------------------------------------------
+          // Update local UI
+          // ----------------------------------------------------
 
           setBroadcasts((prev) =>
             prev.map((item) =>
@@ -247,20 +342,29 @@ export default function MyBroadcasts() {
 
           setConfirmModal(null);
         } catch (error) {
-          console.error(error);
+          console.error(
+            "Complete project error:",
+            error
+          );
 
           setConfirmModal({
             title: "Completion Failed",
             message:
+              error.message ||
               "Unable to complete project. Please try again.",
             confirmText: "OK",
             type: "info",
-            action: () => setConfirmModal(null),
+            action: () =>
+              setConfirmModal(null),
           });
         }
       },
     });
   }
+
+  // ============================================================
+  // LOADING
+  // ============================================================
 
   if (loading) {
     return (
@@ -270,19 +374,31 @@ export default function MyBroadcasts() {
     );
   }
 
-  const activeBroadcasts = broadcasts.filter(
-    (broadcast) => broadcast.status === "active"
-  );
+  // ============================================================
+  // FILTERS
+  // ============================================================
 
-  const progressBroadcasts = broadcasts.filter(
-    (broadcast) =>
-      broadcast.status === "in_progress"
-  );
+  const activeBroadcasts =
+    broadcasts.filter(
+      (broadcast) =>
+        broadcast.status === "active"
+    );
 
-  const completedBroadcasts = broadcasts.filter(
-    (broadcast) =>
-      broadcast.status === "completed"
-  );
+  const progressBroadcasts =
+    broadcasts.filter(
+      (broadcast) =>
+        broadcast.status === "in_progress"
+    );
+
+  const completedBroadcasts =
+    broadcasts.filter(
+      (broadcast) =>
+        broadcast.status === "completed"
+    );
+
+  // ============================================================
+  // UI
+  // ============================================================
 
   return (
     <div className="myBroadcastsPage">
@@ -299,7 +415,9 @@ export default function MyBroadcasts() {
               ? "activeTab"
               : ""
           }`}
-          onClick={() => setActiveTab("active")}
+          onClick={() =>
+            setActiveTab("active")
+          }
         >
           Active
         </button>
@@ -310,7 +428,9 @@ export default function MyBroadcasts() {
               ? "activeTab"
               : ""
           }`}
-          onClick={() => setActiveTab("progress")}
+          onClick={() =>
+            setActiveTab("progress")
+          }
         >
           In Progress
         </button>
@@ -321,7 +441,9 @@ export default function MyBroadcasts() {
               ? "activeTab"
               : ""
           }`}
-          onClick={() => setActiveTab("completed")}
+          onClick={() =>
+            setActiveTab("completed")
+          }
         >
           Completed
         </button>
@@ -330,7 +452,9 @@ export default function MyBroadcasts() {
 
       <div className="broadcastContent">
 
+        {/* ================================================== */}
         {/* ACTIVE */}
+        {/* ================================================== */}
 
         {activeTab === "active" && (
           <div>
@@ -342,10 +466,15 @@ export default function MyBroadcasts() {
                   className="broadcastCard"
                 >
 
-                  <h3>{broadcast.title}</h3>
+                  <h3>
+                    {broadcast.title}
+                  </h3>
 
                   <p className="broadcastGroup">
-                    {broadcast.targetSkills?.[0]}
+                    {
+                      broadcast
+                        .targetSkills?.[0]
+                    }
                   </p>
 
                   <p>
@@ -358,12 +487,20 @@ export default function MyBroadcasts() {
                         "image"
                       ) && (
                         <img
-                          src={broadcast.media.url}
-                          alt={broadcast.media.name}
+                          src={
+                            broadcast.media
+                              .url
+                          }
+                          alt={
+                            broadcast.media
+                              .name
+                          }
                           className="broadcastImage"
                           onClick={() =>
                             setSelectedImage(
-                              broadcast.media.url
+                              broadcast
+                                .media
+                                .url
                             )
                           }
                         />
@@ -373,7 +510,10 @@ export default function MyBroadcasts() {
                         "video"
                       ) && (
                         <video
-                          src={broadcast.media.url}
+                          src={
+                            broadcast.media
+                              .url
+                          }
                           controls
                           className="broadcastVideo"
                         />
@@ -386,12 +526,20 @@ export default function MyBroadcasts() {
                           "video"
                         ) && (
                           <a
-                            href={broadcast.media.url}
+                            href={
+                              broadcast
+                                .media
+                                .url
+                            }
                             target="_blank"
                             rel="noreferrer"
                           >
                             Attachment:{" "}
-                            {broadcast.media.name}
+                            {
+                              broadcast
+                                .media
+                                .name
+                            }
                           </a>
                         )}
                     </>
@@ -417,7 +565,9 @@ export default function MyBroadcasts() {
                     <button
                       className="deleteButton"
                       onClick={() =>
-                        handleDelete(broadcast.id)
+                        handleDelete(
+                          broadcast.id
+                        )
                       }
                     >
                       Delete
@@ -429,12 +579,16 @@ export default function MyBroadcasts() {
               )
             )}
 
-            {activeBroadcasts.length === 0 && (
+            {activeBroadcasts.length ===
+              0 && (
               <div className="emptyState">
-                <h2>No Active Broadcasts</h2>
+                <h2>
+                  No Active Broadcasts
+                </h2>
+
                 <p>
-                  Your active broadcasts will
-                  appear here.
+                  Your active broadcasts
+                  will appear here.
                 </p>
               </div>
             )}
@@ -442,7 +596,9 @@ export default function MyBroadcasts() {
           </div>
         )}
 
+        {/* ================================================== */}
         {/* IN PROGRESS */}
+        {/* ================================================== */}
 
         {activeTab === "progress" && (
           <div>
@@ -454,10 +610,15 @@ export default function MyBroadcasts() {
                   className="broadcastCard"
                 >
 
-                  <h3>{broadcast.title}</h3>
+                  <h3>
+                    {broadcast.title}
+                  </h3>
 
                   <p className="broadcastGroup">
-                    {broadcast.targetSkills?.[0]}
+                    {
+                      broadcast
+                        .targetSkills?.[0]
+                    }
                   </p>
 
                   <p>
@@ -478,13 +639,16 @@ export default function MyBroadcasts() {
                         )
                       }
                     >
-                      View Interested Candidates
+                      View Interested
+                      Candidates
                     </button>
 
                     <button
                       className="deleteButton"
                       onClick={() =>
-                        completeProject(broadcast)
+                        completeProject(
+                          broadcast
+                        )
                       }
                     >
                       Complete Project
@@ -496,14 +660,16 @@ export default function MyBroadcasts() {
               )
             )}
 
-            {progressBroadcasts.length === 0 && (
+            {progressBroadcasts.length ===
+              0 && (
               <div className="emptyState">
                 <h2>
                   No Broadcasts In Progress
                 </h2>
+
                 <p>
-                  Broadcasts being worked on
-                  will appear here.
+                  Broadcasts being worked
+                  on will appear here.
                 </p>
               </div>
             )}
@@ -511,7 +677,9 @@ export default function MyBroadcasts() {
           </div>
         )}
 
+        {/* ================================================== */}
         {/* COMPLETED */}
+        {/* ================================================== */}
 
         {activeTab === "completed" && (
           <div>
@@ -523,10 +691,15 @@ export default function MyBroadcasts() {
                   className="broadcastCard"
                 >
 
-                  <h3>{broadcast.title}</h3>
+                  <h3>
+                    {broadcast.title}
+                  </h3>
 
                   <p className="broadcastGroup">
-                    {broadcast.targetSkills?.[0]}
+                    {
+                      broadcast
+                        .targetSkills?.[0]
+                    }
                   </p>
 
                   <p>
@@ -541,11 +714,13 @@ export default function MyBroadcasts() {
               )
             )}
 
-            {completedBroadcasts.length === 0 && (
+            {completedBroadcasts.length ===
+              0 && (
               <div className="emptyState">
                 <h2>
                   No Completed Broadcasts
                 </h2>
+
                 <p>
                   Your completed broadcasts
                   will appear here.
@@ -556,7 +731,9 @@ export default function MyBroadcasts() {
           </div>
         )}
 
+        {/* ================================================== */}
         {/* CREATE */}
+        {/* ================================================== */}
 
         <div
           className="createBroadcastCard"
@@ -564,13 +741,18 @@ export default function MyBroadcasts() {
             navigate("/broadcast")
           }
         >
-          <div className="plusIcon">+</div>
+          <div className="plusIcon">
+            +
+          </div>
+
           <h3>
             Create a New Broadcast
           </h3>
         </div>
 
+        {/* ================================================== */}
         {/* IMAGE VIEWER */}
+        {/* ================================================== */}
 
         {selectedImage && (
           <div className="imageViewer">
@@ -595,16 +777,25 @@ export default function MyBroadcasts() {
 
       </div>
 
+      {/* ================================================== */}
+      {/* CONFIRM MODAL */}
+      {/* ================================================== */}
+
       {confirmModal && (
         <ConfirmModal
           isOpen={true}
           title={confirmModal.title}
           message={confirmModal.message}
-          confirmText={confirmModal.confirmText}
-          type={
-            confirmModal.type || "confirm"
+          confirmText={
+            confirmModal.confirmText
           }
-          onConfirm={confirmModal.action}
+          type={
+            confirmModal.type ||
+            "confirm"
+          }
+          onConfirm={
+            confirmModal.action
+          }
           onClose={() =>
             setConfirmModal(null)
           }
